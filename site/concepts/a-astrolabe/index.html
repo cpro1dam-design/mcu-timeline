@@ -1,0 +1,147 @@
+<!doctype html>
+<!-- Frise A « Éphémérides » (cadran), tirée du gabarit commun du Lot 2 (archivé : maquettes_ecartees/socle-lot2/_template.html).
+     Ne pas retirer les identifiants : shell.js les utilise (contrat DOM, voir shared/CONTRACT.md). -->
+<html lang="fr" data-concept="a" data-app>
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050507">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="color-scheme" content="dark">
+<title>Éphémérides · Frise MCU</title>
+<meta name="description" content="Éphémérides : l’univers cinématographique Marvel sur un cadran, phase par phase (site de fan non officiel).">
+<link rel="stylesheet" href="../../shared/css/fonts.css">
+<link rel="stylesheet" href="../../shared/css/base.css">
+<link rel="stylesheet" href="../../data/couleurs.css">
+<link rel="stylesheet" href="../../shared/css/concept.css">
+<link rel="stylesheet" href="../../shared/css/archive.css">
+<link rel="stylesheet" href="../../shared/css/app.css">
+<link rel="stylesheet" href="a.css">
+<!-- précharge : début (généré par tools/build_site.py, ne pas modifier à la main) -->
+<meta name="frise-data" content="{&quot;characters.json&quot;:&quot;bd9ac7fae9&quot;,&quot;search.json&quot;:&quot;743f8d99a5&quot;,&quot;status.json&quot;:&quot;9ab0b7bdbd&quot;,&quot;taxonomy.json&quot;:&quot;2e90ba0476&quot;,&quot;texts.json&quot;:&quot;8dc811d39a&quot;,&quot;works.json&quot;:&quot;1585ccd3f6&quot;}">
+<link rel="preload" href="../../shared/fonts/archivo/archivo-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../shared/fonts/newsreader/newsreader-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../data/works.json?v=1585ccd3f6" as="fetch" crossorigin>
+<link rel="preload" href="../../data/taxonomy.json?v=2e90ba0476" as="fetch" crossorigin>
+<link rel="preload" href="../../data/status.json?v=9ab0b7bdbd" as="fetch" crossorigin>
+<link rel="modulepreload" href="../../shared/js/shell.js">
+<link rel="modulepreload" href="../../shared/js/thread.js">
+<link rel="modulepreload" href="../../shared/js/layout.js">
+<link rel="modulepreload" href="../../shared/js/dates.js">
+<link rel="modulepreload" href="../../shared/js/preview.js">
+<link rel="modulepreload" href="../../shared/js/affiche.js">
+<link rel="modulepreload" href="../../shared/js/filter.js">
+<link rel="modulepreload" href="../../shared/js/prefs.js">
+<link rel="modulepreload" href="../../shared/js/data.js">
+<link rel="modulepreload" href="../../shared/js/sky.js">
+<link rel="modulepreload" href="../../shared/js/zoom.js">
+<link rel="modulepreload" href="../../shared/js/archive-view.js">
+<link rel="modulepreload" href="../../shared/js/spoilers.js">
+<link rel="modulepreload" href="../../shared/js/vus.js">
+<link rel="modulepreload" href="../../shared/js/versions.js">
+<link rel="modulepreload" href="../../shared/js/search.js">
+<link rel="modulepreload" href="../../shared/js/colors.js">
+<link rel="modulepreload" href="../../shared/js/overlays.js">
+<link rel="modulepreload" href="../../shared/js/appshell.js">
+<link rel="modulepreload" href="../../shared/js/totop.js">
+<link rel="modulepreload" href="../../shared/js/offline.js">
+<link rel="modulepreload" href="../../shared/js/medal.js">
+<link rel="modulepreload" href="../../shared/js/marks.js">
+<link rel="modulepreload" href="../../shared/js/marks-io.js">
+<!-- précharge : fin -->
+<link rel="icon" href="../../shared/img/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.json">
+<script src="../../shared/js/boot.js"></script>
+<script type="module" src="a.js"></script>
+</head>
+<body>
+<a class="skip" href="#frise">Aller à la frise</a>
+<a class="skip skip--2" href="#oeuvres">Aller à la liste des œuvres</a>
+<div class="sky" aria-hidden="true"><canvas id="sky"></canvas></div>
+
+<header class="c-header">
+  <p class="c-brand"><a href="../../index.html">Éphémérides</a> <span class="c-brand__tag">Site de fan non officiel</span></p>
+  <button type="button" class="c-appbtn" id="btn-reglages" aria-haspopup="dialog"><svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 7h10M17.5 7h3M3.5 17h3M10.5 17h10"/><circle cx="15.5" cy="7" r="2.2"/><circle cx="8.5" cy="17" r="2.2"/></svg><span class="c-appbtn__t">Réglages</span></button>
+  <nav class="c-modes" aria-label="Modes d’affichage">
+    <ul>
+      <li><a href="?mode=phases" data-mode="phases"><svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.5l8.5 4.25L12 12 3.5 7.75z"/><path d="M3.5 12L12 16.25 20.5 12"/><path d="M3.5 16.25L12 20.5l8.5-4.25"/></svg><span class="c-modes__t">Phases</span></a></li>
+      <li><a href="?mode=chronologie" data-mode="chronologie"><svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.5 12h19"/><circle cx="6" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="18" cy="12" r="2.2"/><path d="M12 5v2.5M18 16.5V19M6 5v2.5"/></svg><span class="c-modes__t">Chronologie</span></a></li>
+      <li><a href="?mode=personnages" data-mode="personnages"><svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8.2" r="3.8"/><path d="M4.5 20c1.2-3.9 4-5.9 7.5-5.9s6.3 2 7.5 5.9"/></svg><span class="c-modes__t">Personnages</span></a></li>
+      <li class="c-modes__search"><button type="button" id="btn-recherche" aria-haspopup="dialog"><svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.3"/><path d="M15.5 15.5L20.5 20.5"/></svg><span class="c-modes__t">Rechercher</span></button></li>
+    </ul>
+  </nav>
+  <div class="search c-search" data-search role="search">
+    <label for="recherche" class="search__label visually-hidden">Rechercher un film, une série ou un personnage</label>
+    <input id="recherche" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="recherche-resultats" autocomplete="off" spellcheck="false" placeholder="Film, série, personnage…">
+    <ul id="recherche-resultats" role="listbox" aria-label="Résultats de recherche" class="search__results" hidden></ul>
+  </div>
+  <div class="c-tools">
+    <div class="segmented" role="group" aria-label="Ordre">
+      <button type="button" data-order="release" aria-pressed="true">Sortie</button>
+      <button type="button" data-order="story" aria-pressed="false">Histoire</button>
+    </div>
+    <button type="button" class="button" id="btn-list" aria-pressed="false">Vue liste</button>
+    <details class="c-settings">
+      <summary title="Réglages"><svg class="m-ico c-settings__ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 7h10M17.5 7h3M3.5 17h3M10.5 17h10"/><circle cx="15.5" cy="7" r="2.2"/><circle cx="8.5" cy="17" r="2.2"/></svg><span class="c-settings__t">Réglages</span></summary>
+      <div class="c-settings__body">
+        <label for="vu-jusqua">J’ai vu jusqu’à…</label>
+        <select id="vu-jusqua"><option value="">Je ne précise pas</option></select>
+        <label class="switch"><input type="checkbox" id="tout-afficher" role="switch"> Tout afficher (spoilers)</label>
+        <label class="switch"><input type="checkbox" id="reduire-animations" role="switch"> Réduire les animations</label>
+        <label class="switch"><input type="checkbox" id="opt-series" role="switch" checked> Afficher les séries</label>
+        <p class="c-counts" id="compteurs"></p>
+      </div>
+    </details>
+  </div>
+</header>
+
+<main id="contenu">
+  <h1 class="visually-hidden">Éphémérides : frise de l’univers cinématographique Marvel</h1>
+  <p id="erreur-donnees" class="notice" role="alert" hidden></p>
+  <section class="c-persos" id="champ-personnage" aria-labelledby="h-persos" hidden>
+    <h2 id="h-persos" class="c-persos__title">Personnages</h2>
+  </section>
+  <section id="frise" class="frise" aria-label="Frise des œuvres" tabindex="-1" aria-busy="true">
+    <div class="c-skel c-skel--cadran" aria-hidden="true">
+      <span class="c-skel__b c-skel__col c-skel__col--l"></span>
+      <span class="c-skel__b c-skel__ring"></span>
+      <span class="c-skel__b c-skel__hub"></span>
+      <span class="c-skel__b c-skel__col c-skel__col--r"></span>
+      <span class="c-skel__b c-skel__poster"></span>
+      <span class="c-skel__b c-skel__line c-skel__line--1"></span>
+      <span class="c-skel__b c-skel__line c-skel__line--2"></span>
+    </div>
+    <svg class="frise__svg" aria-hidden="true" focusable="false"></svg>
+    <ol id="oeuvres" class="oeuvres" aria-label="Œuvres, dans l’ordre affiché"></ol>
+  </section>
+  <div class="c-zoom" role="group" aria-label="Zoom de la frise">
+    <button type="button" class="button" id="zoom-out" aria-label="Dézoomer">−</button>
+    <p id="zoom-level" class="c-zoom__label">Vue : œuvres</p>
+    <button type="button" class="button" id="zoom-in" aria-label="Zoomer">+</button>
+    <button type="button" class="button" id="zoom-reset">Réinitialiser</button>
+  </div>
+  <details class="c-help">
+    <summary>Comment lire la frise ?</summary>
+    <ul>
+      <li>Chaque œuvre est un point relié aux autres par le fil noir, dans l’ordre choisi (sortie ou histoire).</li>
+      <li>Les œuvres d’un autre univers (Terre-828, Terre-10005) sont en fuchsia, avec le nom de leur univers ; le fil s’en écarte en tirets.</li>
+      <li>Choisissez une œuvre pour ouvrir ses Archives ; flèches pour passer d’une œuvre à l’autre, + et − pour zoomer, Échap pour revenir.</li>
+    </ul>
+  </details>
+  <p id="annonces" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+</main>
+
+<footer class="c-footer">
+  <p>Site de fan non officiel et non commercial, non affilié à Marvel Studios ni à Disney. Textes : Wikipédia (CC BY-SA 4.0) ; données : Wikidata (CC0).</p>
+  <ul>
+    <li><a href="../../index.html">Liste des œuvres</a></li>
+    <li><a href="../../hub/index.html">Les deux frises</a></li>
+    <li><a href="../../pages/mentions-legales.html">Mentions légales</a></li>
+    <li><a href="../../pages/confidentialite.html">Confidentialité</a></li>
+    <li><a href="../../pages/accessibilite.html">Accessibilité : non conforme</a></li>
+    <li><a href="../../pages/sources.html">Sources</a></li>
+  </ul>
+</footer>
+</body>
+</html>

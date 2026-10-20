@@ -1,0 +1,4 @@
+# Copiez ce fichier en tools/tmdb_key.txt (ignoré par git).
+# Collez votre jeton TMDB (« API Read Access Token », commence par eyJ…) SEUL sur la dernière ligne,
+# sous ces commentaires, sans # devant. Les lignes qui commencent par # sont ignorées.
+# Ne partagez jamais ce fichier. Sur GitHub, utilisez plutôt le secret TMDB_TOKEN.

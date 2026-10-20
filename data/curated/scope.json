@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "rule_fr": "Films et séries de l’univers cinématographique Marvel produits par Marvel Studios (tous labels depuis 2024 : Marvel Television, Marvel Animation, Marvel Spotlight). Sont exclus : les épisodes spéciaux (téléfilms « Marvel Studios Special Presentation »), les séries Marvel Television 2013–2020 (dont Netflix et ABC), les courts métrages, les documentaires, les versions longues, et toute œuvre sortie plus de 30 jours avant le dernier relevé de l’ordre chronologique officiel de Marvel mais absente de cet ordre.",
+  "production_companies": [
+    "Q367466",
+    "Q117377427"
+  ],
+  "production_companies_note": "Q367466 = Marvel Studios ; Q117377427 = Marvel Studios Animation (Wikidata).",
+  "allowed_types": {
+    "Q11424": "film",
+    "Q18011172": "film",
+    "Q5398426": "series",
+    "Q1259759": "series",
+    "Q117467246": "series",
+    "Q581714": "series",
+    "Q1261214": "special"
+  },
+  "excluded_types": {
+    "Q24862": "court métrage",
+    "Q914242": "version longue",
+    "Q93204": "documentaire"
+  },
+  "excluded_kinds": {
+    "special": "Épisodes spéciaux (téléfilms « Marvel Studios Special Presentation », rubrique « Téléfilms » des articles « Phase N » de Wikipédia) : exclus par choix éditorial le 19/10/2026."
+  },
+  "official_order_rule": {
+    "enabled": true,
+    "grace_days": 30,
+    "rule_fr": "Une œuvre sortie (première date connue au jour près, France ou États-Unis) plus de 30 jours avant la date de publication du relevé de l’ordre chronologique officiel (data/curated/story_order.json) doit figurer dans ce relevé ; sinon elle est écartée. Les 30 jours laissent à Marvel le temps de placer une nouveauté. Les œuvres plus récentes gardent une place provisoire.",
+    "decided": "Choix éditorial du 19/10/2026."
+  },
+  "min_signals": 2,
+  "include": [
+    {
+      "id": "Q113244842",
+      "reason": "Avengers: Secret Wars figure dans le tableau des films de l’article « Phase 6 » de Wikipédia, mais sans lien vers son article (rapprochement automatique impossible) ; Wikidata le rattache aussi à la phase 6.",
+      "source": "https://fr.wikipedia.org/w/index.php?oldid=238715532",
+      "quote": "Avengers: Secret Wars (tableau « Films » de l’article Phase 6 de l’univers cinématographique Marvel)"
+    }
+  ],
+  "exclude": [
+    {
+      "id": "Q105553928",
+      "reason": "Série documentaire (Marvel Studios : Rassemblement), hors fiction.",
+      "source": "https://www.wikidata.org/wiki/Q105553928"
+    },
+    {
+      "id": "Q113471777",
+      "reason": "Version longue de Spider-Man: No Way Home (même œuvre).",
+      "source": "https://www.wikidata.org/wiki/Q113471777"
+    },
+    {
+      "id": "Q108170999",
+      "reason": "Série de courts métrages (Je s'appelle Groot) : exclue par la règle « courts métrages ».",
+      "source": "https://www.wikidata.org/wiki/Q108170999"
+    },
+    {
+      "id": "Q104193683",
+      "reason": "Série de récapitulatifs (Les Légendes des Studios Marvel), hors fiction.",
+      "source": "https://www.wikidata.org/wiki/Q104193683"
+    }
+  ]
+}

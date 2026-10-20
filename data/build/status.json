@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-10-20",
+  "sources": {
+    "wikidata": {
+      "ok": true,
+      "at": "2026-10-20"
+    },
+    "frwiki": {
+      "ok": true,
+      "at": "2026-10-20",
+      "discovery_pages": [
+        {
+          "phase": 1,
+          "title": "Phase 1 de l'univers cinématographique Marvel",
+          "revid": 235234262
+        },
+        {
+          "phase": 2,
+          "title": "Phase 2 de l'univers cinématographique Marvel",
+          "revid": 235649747
+        },
+        {
+          "phase": 3,
+          "title": "Phase 3 de l'univers cinématographique Marvel",
+          "revid": 238665461
+        },
+        {
+          "phase": 4,
+          "title": "Phase 4 de l'univers cinématographique Marvel",
+          "revid": 240113935
+        },
+        {
+          "phase": 5,
+          "title": "Phase 5 de l'univers cinématographique Marvel",
+          "revid": 238166021
+        },
+        {
+          "phase": 6,
+          "title": "Phase 6 de l'univers cinématographique Marvel",
+          "revid": 238715532
+        }
+      ]
+    },
+    "tmdb": {
+      "ok": false,
+      "reason": "pas de données TMDB (clé absente)"
+    }
+  },
+  "counts": {
+    "works": 56,
+    "film": 40,
+    "series": 16,
+    "special": 0
+  },
+  "quarantine": [
+    {
+      "id": "Q108037985",
+      "kind": "film",
+      "label": "Armor Wars",
+      "signals": [
+        "wikidata"
+      ],
+      "frwiki_rows": [],
+      "reason": "une seule source (wikidata)"
+    },
+    {
+      "id": "Q109951319",
+      "kind": "film",
+      "label": "untitled Shang-Chi and the Legend of the Ten Rings sequel",
+      "signals": [
+        "wikidata"
+      ],
+      "frwiki_rows": [],
+      "reason": "une seule source (wikidata)"
+    },
+    {
+      "id": "Q83430460",
+      "kind": "film",
+      "label": "Blade",
+      "signals": [
+        "wikidata"
+      ],
+      "frwiki_rows": [],
+      "reason": "une seule source (wikidata)"
+    }
+  ],
+  "excluded": [
+    {
+      "id": "Q106729096",
+      "kind": "special",
+      "label": "Les Gardiens de la Galaxie : Joyeuses Fêtes",
+      "rule": "scope",
+      "reason": "nature exclue : Épisodes spéciaux (téléfilms « Marvel Studios Special Presentation », rubrique « Téléfilms » des articles « Phase N » de Wikipédia) : exclus par choix éditorial le 19/10/2026.",
+      "short": "épisode spécial, hors périmètre"
+    },
+    {
+      "id": "Q108170999",
+      "kind": null,
+      "label": "Je s'appelle Groot",
+      "rule": "scope",
+      "reason": "exclu : Série de courts métrages (Je s'appelle Groot) : exclue par la règle « courts métrages ».",
+      "short": "hors périmètre"
+    },
+    {
+      "id": "Q111426635",
+      "kind": "special",
+      "label": "Werewolf by Night",
+      "rule": "scope",
+      "reason": "nature exclue : Épisodes spéciaux (téléfilms « Marvel Studios Special Presentation », rubrique « Téléfilms » des articles « Phase N » de Wikipédia) : exclus par choix éditorial le 19/10/2026.",
+      "short": "épisode spécial, hors périmètre"
+    },
+    {
+      "id": "Q113471777",
+      "kind": null,
+      "label": "Spider-Man: No Way Home - version longue",
+      "rule": "scope",
+      "reason": "exclu : Version longue de Spider-Man: No Way Home (même œuvre).",
+      "short": "hors périmètre"
+    },
+    {
+      "id": "Q135411818",
+      "kind": "special",
+      "label": "The Punisher: One Last Kill",
+      "rule": "scope",
+      "reason": "nature exclue : Épisodes spéciaux (téléfilms « Marvel Studios Special Presentation », rubrique « Téléfilms » des articles « Phase N » de Wikipédia) : exclus par choix éditorial le 19/10/2026.",
+      "short": "épisode spécial, hors périmètre"
+    },
+    {
+      "id": "Q113005299",
+      "kind": "series",
+      "label": "Votre fidèle serviteur Spider-Man",
+      "rule": "official_order",
+      "reason": "sortie le 2025-01-29 mais absente de l’ordre officiel publié le 2026-03-27",
+      "short": "absente de l’ordre officiel de Marvel",
+      "ref": "https://thedirect.com/article/marvel-studios-officially-places-daredevil-born-again-season-2-on-the-mcu-timeline"
+    },
+    {
+      "id": "Q123953931",
+      "kind": "series",
+      "label": "Eyes of Wakanda",
+      "rule": "official_order",
+      "reason": "sortie le 2025-08-01 mais absente de l’ordre officiel publié le 2026-03-27",
+      "short": "absente de l’ordre officiel de Marvel",
+      "ref": "https://thedirect.com/article/marvel-studios-officially-places-daredevil-born-again-season-2-on-the-mcu-timeline"
+    }
+  ],
+  "conflicts": [
+    {
+      "field": "release.fr",
+      "values": [
+        "2018-02-14",
+        "2018-04-25"
+      ],
+      "note": "article Wikipédia (retenu) et wikidata diffèrent",
+      "work": "Q23780734"
+    },
+    {
+      "field": "phase",
+      "values": [
+        5,
+        4
+      ],
+      "note": "tableau de l’article de phase (retenu) et Wikidata diffèrent",
+      "work": "Q108124282"
+    }
+  ],
+  "provisional_story": [
+    "Q113244935",
+    "Q126092795",
+    "Q113244839",
+    "Q113244842"
+  ],
+  "http_requests": 181
+}

@@ -1,0 +1,557 @@
+/* Chrome commun des maquettes (en-tête, outils, zoom, ciel, vue liste). Chaque maquette ajoute sa
+   propre feuille : typographie, couleur signature (--signature), disposition de la frise. */
+
+:root {
+  --signature: var(--red);
+  --signature-text: var(--red-text);
+  --sky: #0F1424;
+  --nebula-1: #1A2238;
+  --nebula-2: #221E36;
+  --accent-film: #FF5A5F;
+  --band: #8C8FB0;
+  --thread-core: #05060A;
+  --thread-rim: #FF5A5F;     /* liseré rouge clair : ≥ 3:1 sur le ciel, fil noir 6,6:1 dessus */
+  --header-h: 4.25rem;
+}
+@property --sky { syntax: '<color>'; inherits: true; initial-value: #0F1424; }
+@property --nebula-1 { syntax: '<color>'; inherits: true; initial-value: #1A2238; }
+@property --nebula-2 { syntax: '<color>'; inherits: true; initial-value: #221E36; }
+@property --accent-film { syntax: '<color>'; inherits: true; initial-value: #FF5A5F; }
+@property --band { syntax: '<color>'; inherits: true; initial-value: #8C8FB0; }
+:root { transition: --sky 1s ease, --nebula-1 1s ease, --nebula-2 1s ease, --accent-film 1s ease, --band 1s ease; }
+.is-reduced-motion { transition-duration: 0.2s; }
+
+body { background: var(--sky); background-image: none; overflow-x: hidden; }
+
+/* ciel : canvas WebGL décoratif, ou repli CSS statique (mêmes variables) */
+.sky { position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(60% 45% at 70% 30%, color-mix(in srgb, var(--nebula-1) 75%, transparent), transparent 70%),
+    radial-gradient(50% 40% at 20% 75%, color-mix(in srgb, var(--nebula-2) 70%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--sky) 80%, #000), var(--sky)); }
+.sky canvas { width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 0.6s ease; }
+.sky canvas.is-ready { opacity: 1; }
+.has-archives .sky canvas { opacity: 0.35; }
+
+.skip--2:focus { top: 4rem; }
+
+/* -- en-tête --------------------------------------------------------------------------- */
+.c-header {
+  position: sticky; top: 0; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.25rem;
+  padding: 0.6rem clamp(0.75rem, 2vw, 1.5rem); min-height: var(--header-h);
+  background: linear-gradient(180deg, rgb(5 5 7 / 0.92), rgb(5 5 7 / 0.72)); border-bottom: 2px solid var(--red);
+}
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .c-header { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+}
+.c-brand { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; }
+.c-brand a { display: inline-block; padding: 0.3rem 0.55rem 0.25rem; color: #fff; background: var(--red); text-decoration: none; font: 700 1.2rem/1.1 var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; }
+.c-brand a:hover { color: #fff; background: #C81E25; }
+.c-brand__tag { color: var(--fg-3); font-size: 0.8125rem; }
+.c-modes ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 0.25rem; }
+.c-modes a { display: inline-block; min-height: 44px; line-height: 44px; padding: 0 0.75rem; color: var(--fg-2); text-decoration: none; border-bottom: 3px solid transparent; }
+.c-modes a[aria-current="page"] { color: #fff; border-bottom-color: var(--red); }
+.c-modes a:hover { color: var(--fg); }
+.c-tools { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.c-settings { position: relative; }
+.c-settings summary { min-height: 44px; line-height: 44px; padding: 0 1rem; border: 1px solid #4A4A55; border-radius: 999px; cursor: pointer; list-style: none; }
+.c-settings summary::-webkit-details-marker { display: none; }
+.c-settings__body {
+  position: absolute; right: 0; top: calc(100% + 0.5rem); width: min(22rem, 90vw); display: grid; gap: 0.5rem; padding: 1rem;
+  background: #111116; border: 1px solid #4A4A55; border-radius: 10px; box-shadow: 0 20px 40px rgb(0 0 0 / 0.5); z-index: 40;
+}
+.c-counts { margin: 0.25rem 0 0; color: var(--fg-2); font-size: 0.875rem; }
+.c-field { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; padding: 0.75rem clamp(0.75rem, 2vw, 1.5rem) 0; }
+.c-field select { width: auto; min-width: 16rem; }
+
+main#contenu { max-width: none; padding: 0; }
+
+/* -- frise --------------------------------------------------------------------------- */
+.frise { position: relative; min-height: calc(100vh - var(--header-h) - 7rem); }
+.frise:focus { outline: none; }
+.frise__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.oeuvres { list-style: none; margin: 0; padding: 0; }
+.node { position: absolute; left: 0; top: 0; transform: translate(var(--x, 0px), var(--y, 0px)); }
+.node[hidden] { display: none; }
+.node__btn {
+  display: grid; gap: 0.1rem; min-width: 44px; min-height: 44px; padding: 0.35rem 0.6rem; text-align: left; cursor: pointer;
+  color: var(--fg); background: rgb(8 8 11 / 0.84); border: 1px solid rgb(245 243 239 / 0.18); border-radius: 8px; font: inherit;
+}
+.node__title { font-weight: 600; font-size: 0.95rem; line-height: 1.2; }
+.node__meta { font-size: 0.78rem; color: var(--fg-2); }
+.node.is-dimmed { opacity: 0.28; }
+.node.is-highlighted .node__btn { border-color: var(--red-text); }
+.node[data-status="upcoming"] .node__btn, .node[data-status="tba"] .node__btn { border-style: dashed; }
+.node.is-seen .node__title { color: var(--seen); } /* œuvre vue : titre en vert (plus de coche) */
+
+/* -- zoom et aide --------------------------------------------------------------------- */
+.c-zoom { position: sticky; bottom: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.6rem;
+  background: linear-gradient(0deg, rgb(5 5 7 / 0.9), rgb(5 5 7 / 0.6)); }
+.c-zoom .button { min-width: 44px; font-size: 1.1rem; }
+.c-zoom .button[aria-disabled="true"] { opacity: 0.4; cursor: default; }
+.c-zoom__label { margin: 0 0.5rem; min-width: 8.5rem; text-align: center; color: var(--fg-2); }
+.c-help { margin: 1rem clamp(0.75rem, 2vw, 1.5rem); max-width: 48rem; }
+.c-help summary { min-height: 44px; line-height: 44px; }
+.c-footer { padding: 1.5rem clamp(0.75rem, 2vw, 1.5rem) 2.5rem; color: var(--fg-2); font-size: 0.875rem; border-top: 1px solid rgb(245 243 239 / 0.1); }
+.c-footer ul { list-style: none; padding: 0; margin: 0.5rem 0 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.c-footer a { display: inline-block; min-height: 44px; line-height: 44px; }
+
+/* -- fil noir : couches communes (les maquettes règlent épaisseurs et couleurs) ---------- */
+.thread path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.thread__mask { stroke: var(--sky); stroke-width: 14; opacity: 0.9; }
+.thread__glow { stroke: transparent; stroke-width: 0; }
+.thread__rim { stroke: var(--thread-rim); stroke-width: 5; }
+.thread__core { stroke: var(--thread-core); stroke-width: 3; }
+.thread__branch .thread__mask { stroke-width: 8; }
+.thread__branch .thread__rim { stroke-width: 3; }
+.thread__branch .thread__core { stroke-width: 1.5; }
+.thread__branch.is-open .thread__core { stroke-dasharray: 6 6; }
+.thread.is-dimmed { opacity: 0.35; }
+
+/* -- vue liste (bouton, ou automatique à 400 px de large / 420 px de haut) --------------- */
+.is-list-view .frise { min-height: 0; padding: 1rem clamp(0.75rem, 2vw, 1.5rem); }
+.is-list-view .frise__svg { display: none; }
+.is-list-view .oeuvres { display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); }
+.is-list-view .node { position: static; transform: none !important; }
+.is-list-view .node__btn { width: 100%; }
+.is-list-view .frise-deco { display: none !important; }
+
+@media (max-width: 767px) {
+  .c-tools { margin-left: 0; width: 100%; }
+  .c-modes { width: 100%; }
+  .c-modes ul { justify-content: space-between; }
+  .c-settings__body { right: auto; left: 0; }
+}
+
+@media (forced-colors: active) {
+  .sky { display: none; }
+  .thread__core, .thread__rim { stroke: CanvasText; }
+  .thread__mask { display: none; }
+  .node__btn { border: 1px solid CanvasText; }
+  .node.is-highlighted .node__btn { outline: 2px solid Highlight; }
+}
+
+/* code couleur des phases dans la vue liste (bande à gauche, à côté du chiffre de phase lu en texte) */
+.is-list-view .node__btn { box-shadow: inset 3px 0 0 0 var(--phase-color, transparent); }
+.c-help .color-key { margin: 0.75rem 0 0; }
+
+/* -- recherche toujours visible dans l'en-tête ---------------------------------------------- */
+.c-search { flex: 1 1 15rem; max-width: 22rem; margin: 0; }
+.c-search input { min-height: 44px; padding: 0.5rem 0.9rem; border-radius: 999px; background: rgb(5 5 7 / 0.7); }
+.c-search input::placeholder { color: var(--fg-3); opacity: 1; }
+.c-search .search__results { min-width: min(24rem, calc(100vw - 2rem)); z-index: 45; }
+
+/* -- personnages : galerie, fiche, puis la frise de ses œuvres ------------------------------- */
+.c-persos { padding: 0.75rem clamp(0.75rem, 2vw, 1.5rem) 0.25rem; display: grid; gap: 0.75rem; }
+.c-persos[hidden] { display: none; }
+.c-persos__head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 0.5rem 1.5rem; }
+.c-persos__title { margin: 0; font-size: 1rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-2); }
+.c-persos__finder { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; }
+.c-persos__label { color: var(--fg-2); font-size: 0.9375rem; }
+.c-persos__input { min-height: 44px; width: min(18rem, 100%); padding: 0.5rem 0.8rem; font: inherit; color: var(--fg); background: var(--bg-2); border: 1px solid #4A4A55; border-radius: 8px; }
+.c-persos__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.c-persos__btn { display: inline-grid; min-height: 44px; padding: 0.35rem 0.85rem; text-align: left; font: inherit; color: var(--fg);
+  background: rgb(8 8 11 / 0.82); border: 1px solid #3A3A44; border-radius: 8px; cursor: pointer; }
+.c-persos__btn:hover { border-color: var(--fg-2); }
+.c-persos__btn[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #fff; }
+.c-persos__name { font-weight: 600; font-size: 0.95rem; line-height: 1.2; }
+.c-persos__n { font-size: 0.78rem; color: var(--fg-2); }
+.c-persos__btn[aria-pressed="true"] .c-persos__n { color: #fff; }
+.c-persos__more { justify-self: start; }
+.c-perso-card { display: grid; gap: 0.2rem; padding: 1rem 1.15rem 1.1rem; background: rgb(5 5 7 / 0.9); border: 1px solid #2C2C35; border-top: 3px solid var(--red); border-radius: 4px; max-width: 46rem; }
+.c-perso-card[hidden] { display: none; }
+.c-perso-card__k { margin: 0; font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--red-text); }
+.c-perso-card__name { margin: 0; font: 700 clamp(1.5rem, 3.2vw, 2.1rem)/1.1 var(--font-display); text-transform: uppercase; letter-spacing: 0.02em; }
+.c-perso-card__actor, .c-perso-card__span, .c-perso-card__range { margin: 0; }
+.c-perso-card__actor { color: var(--fg-2); font-style: italic; }
+.c-perso-card__span { font-weight: 600; margin-top: 0.35rem; }
+.c-perso-card__range { color: var(--fg-2); }
+.c-perso-card__phases { list-style: none; margin: 0.4rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; color: var(--fg-2); font-size: 0.9rem; }
+.c-perso-card__open { justify-self: start; margin-top: 0.6rem; }
+.c-perso-card__note { margin: 0.4rem 0 0; color: var(--fg-3); font-size: 0.875rem; }
+.c-perso-card__wait { margin: 0; color: var(--fg-2); font-size: 0.9375rem; }
+
+/* -- cartes de phase (mode Phases) ------------------------------------------------------------ */
+.c-phasecards { padding: 0.75rem clamp(0.75rem, 2vw, 1.5rem) 0; }
+.c-phasecards[hidden] { display: none; }
+.c-phasecards__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); }
+.c-phasecards__list li[hidden] { display: none; }
+.c-phasecard { width: 100%; min-height: 44px; display: grid; gap: 0.1rem; padding: 0.55rem 0.8rem 0.6rem; text-align: left; font: inherit; color: var(--fg);
+  background: rgb(5 5 7 / 0.85); border: 1px solid #2C2C35; border-top: 3px solid var(--phase-color, var(--fg-3)); border-radius: 4px; cursor: pointer; }
+.c-phasecard:hover { background: rgb(18 18 22 / 0.95); }
+.c-phasecard[aria-pressed="true"] { border-color: var(--red); border-top-color: var(--phase-color, var(--red)); box-shadow: inset 0 0 0 1px var(--red); }
+.c-phasecard__n { font: 700 1.6rem/1 var(--font-display); color: var(--phase-color, var(--fg)); }
+.c-phasecard--all .c-phasecard__n { font-size: 1.1rem; line-height: 1.45; color: var(--fg); }
+.c-phasecard__y { font-size: 0.85rem; color: var(--fg-2); }
+.c-phasecard__c { font-size: 0.8rem; color: var(--fg-3); }
+
+/* phases repliées sur la frise : repère plus grand, couleur de la phase */
+.node--phase .node__title { font-weight: 700; }
+.is-list-view .node--phase .node__btn { border-top: 3px solid var(--phase-color, var(--line)); }
+
+@media (max-width: 767px) {
+  .c-search { order: 3; flex-basis: 100%; max-width: none; }
+  .c-phasecards__list { grid-auto-flow: column; grid-auto-columns: 9.5rem; grid-template-columns: none; overflow-x: auto; padding-bottom: 0.25rem; }
+  .c-persos__list { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 0.25rem; }
+  .c-persos__list li { flex: none; }
+}
+@media (forced-colors: active) {
+  .c-persos__btn[aria-pressed="true"], .c-phasecard[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+}
+.c-persos__finder { display: grid; gap: 0.25rem; }
+.c-persos__list[hidden], .c-persos__none[hidden] { display: none; }
+.c-persos__none { margin: 0; color: var(--fg-3); font-size: 0.9375rem; }
+@media (min-width: 1100px) {
+  /* grand écran : la recherche (et la liste) à gauche, la fiche à côté */
+  .c-persos { grid-template-columns: minmax(15rem, 22rem) minmax(0, 46rem); align-items: start; column-gap: 1.5rem; }
+  .c-persos__finder, .c-persos__more, .c-persos__list, .c-persos__none { grid-column: 1; }
+  .c-perso-card { grid-column: 2; grid-row: 1 / span 5; }
+}
+/* cartes de phase compactes : une ligne chacune, la frise reste l'élément principal */
+.c-phasecard { grid-template-columns: auto 1fr; column-gap: 0.6rem; align-items: baseline; padding: 0.4rem 0.75rem; }
+.c-phasecard__n { grid-row: 1 / span 2; font-size: 1.35rem; }
+.c-phasecard--all .c-phasecard__n { font-size: 1rem; }
+/* liste des personnages : défile dans sa colonne au lieu d'allonger la page */
+.c-persos__list { max-height: 15rem; overflow-y: auto; align-content: flex-start; }
+
+/* -- barre d'en-tête sur une seule ligne (grand écran) --------------------------------------- */
+@media (min-width: 1100px) {
+  .c-header { column-gap: 1rem; padding-top: 0.45rem; padding-bottom: 0.45rem; } /* une ligne ; si la fenêtre est trop étroite, les outils passent dessous plutôt que de déborder */
+  .c-brand, .c-modes { flex: none; }
+  .c-modes a { padding: 0 0.55rem; }
+  .c-search { flex: 1 1 10rem; min-width: 8.5rem; max-width: 17rem; }
+  .c-tools { flex: none; flex-wrap: nowrap; gap: 0.4rem; margin-left: 0; }
+  .c-tools .segmented button, .c-tools .c-settings summary { padding-left: 0.75rem; padding-right: 0.75rem; }
+}
+.c-settings__list { width: 100%; text-align: left; }
+@media (min-width: 1100px) { .c-search input { font-size: 0.95rem; } }
+@media (min-width: 1100px) and (max-width: 1279px) {
+  /* fenêtres moyennes : encore un peu plus serré pour rester sur une ligne */
+  .c-header { column-gap: 0.6rem; }
+  .c-modes a { padding: 0 0.4rem; }
+  .c-search { flex-basis: 7.5rem; min-width: 7.5rem; }
+  .c-tools { gap: 0.3rem; font-size: 0.9rem; }
+  .c-tools button, .c-tools summary { font-size: inherit; }
+  .c-tools .segmented button, .c-tools .c-settings summary, .c-sagafilter__group button { padding-left: 0.55rem; padding-right: 0.55rem; }
+  .c-sagafilter__phase .color-key__sw { display: none; } /* le chiffre romain reste ; la couleur est aussi sur la frise */
+}
+
+/* -- liste complète des personnages : fenêtre plein écran, translucide ---------------------- */
+.c-persos-dialog {
+  position: fixed; inset: 0; width: 100vw; height: 100vh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0;
+  color: var(--fg); background: rgb(5 5 7 / 0.8); overflow: auto;
+}
+.c-persos-dialog::backdrop { background: rgb(0 0 0 / 0.25); }
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  /* flou sur le voile (pas sur la fenêtre) : la flèche « Revenir en haut », fixée, ne défile pas avec le contenu */
+  .c-persos-dialog::backdrop { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+}
+.c-persos-dialog__in { max-width: 82rem; margin: 0 auto; padding: clamp(1rem, 3vw, 2.25rem) clamp(1rem, 3vw, 2.5rem) 3rem; display: grid; gap: 1rem; }
+.c-persos-dialog__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--red); }
+.c-persos-dialog__title { margin: 0; font: 700 clamp(1.4rem, 3vw, 2rem)/1.1 var(--font-display); text-transform: uppercase; letter-spacing: 0.04em; }
+.c-persos-dialog__count { margin: 0; color: var(--fg-2); }
+.c-persos-dialog__close { margin-left: auto; }
+.c-persos-dialog__find { display: grid; gap: 0.25rem; max-width: 24rem; }
+.c-persos-dialog__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fill, minmax(min(9.5rem, 100%), 1fr)); }
+.c-persos-dialog__list li[hidden] { display: none; }
+.c-persos-dialog .c-persos__btn { width: 100%; background: rgb(12 12 16 / 0.85); }
+.c-persos-dialog .c-persos__btn[aria-pressed="true"] { background: var(--red); border-color: var(--red); }
+.is-reduced-motion .c-persos-dialog::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (forced-colors: active) { .c-persos-dialog { border: 2px solid CanvasText; } }
+.c-perso-card__aka { margin: 0; color: var(--fg-2); font-size: 0.95rem; }
+/* éléments de l'interface « appli » (téléphone, maquettes A et C : app.css) : masqués partout ailleurs */
+.c-appbtn, .c-modes__search, .c-modes .m-ico, .c-persos__more-s, .c-perso-card__toggle { display: none; }
+.c-perso-card__more { display: grid; gap: 0.2rem; }
+.c-phasecard__ys { display: none; } /* années courtes : téléphone seulement (app.css) */
+
+/* -- mode Phases : passage d'une phase à l'autre (View Transitions, shell.js : phaseTransition) ---------
+   enter = on plonge dans une phase, exit = retour à toutes les phases, step = phase voisine.
+   --vt-ox / --vt-oy : point d'origine (dans la frise) ; --vt-dir : 1 vers la suite, -1 vers le début ;
+   --vt-turn : rotation (maquettes circulaires) ; --vt-clip : découpe de la scène (cadran rond pour A). */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-group(frise) { clip-path: var(--vt-clip, inset(0)); animation-duration: var(--vt-dur, 0.6s); }
+::view-transition-old(frise), ::view-transition-new(frise) {
+  mix-blend-mode: normal; transform-origin: var(--vt-ox, 50%) var(--vt-oy, 50%);
+  animation-duration: var(--vt-dur, 0.6s); animation-fill-mode: both; animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+}
+/* plongée : l'ancienne vue grossit vers le point de la phase et s'efface ; la phase sort de ce point */
+:root[data-vt="enter"]::view-transition-old(frise) { animation-name: vt-grow-out; animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0.25); }
+:root[data-vt="enter"]::view-transition-new(frise) { animation-name: vt-from-point; }
+:root[data-vt="exit"]::view-transition-old(frise) { animation-name: vt-to-point; animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0.25); }
+:root[data-vt="exit"]::view-transition-new(frise) { animation-name: vt-from-big; }
+/* phase voisine (plongée) : le cadran tourne d'un cran, ou la frise glisse */
+:root[data-vt="step"][data-vt-move="turn"]::view-transition-old(frise) { animation-name: vt-turn-out; }
+:root[data-vt="step"][data-vt-move="turn"]::view-transition-new(frise) { animation-name: vt-turn-in; }
+:root[data-vt="step"][data-vt-move="slide"]::view-transition-old(frise) { animation-name: vt-slide-out; }
+:root[data-vt="step"][data-vt-move="slide"]::view-transition-new(frise) { animation-name: vt-slide-in; }
+
+@keyframes vt-grow-out { to { transform: scale(2.6); opacity: 0; } }
+@keyframes vt-from-point { from { transform: scale(0.25); opacity: 0; } 45% { opacity: 1; } to { transform: none; opacity: 1; } }
+@keyframes vt-to-point { to { transform: scale(0.25); opacity: 0; } }
+@keyframes vt-from-big { from { transform: scale(2.6); opacity: 0; } 55% { opacity: 1; } to { transform: none; opacity: 1; } }
+@keyframes vt-turn-out { to { transform: rotate(calc(var(--vt-turn, 28deg) * -1)) scale(0.94); opacity: 0; } }
+@keyframes vt-turn-in { from { transform: rotate(var(--vt-turn, 28deg)) scale(0.94); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes vt-slide-out { to { transform: translateX(calc(var(--vt-dir, 1) * -16%)); opacity: 0; } }
+@keyframes vt-slide-in { from { transform: translateX(calc(var(--vt-dir, 1) * 16%)); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* intertitre « Phase II » : il apparaît une fois entré dans la phase, puis s'efface (décoratif, aria-hidden) */
+.c-intertitle {
+  position: fixed; z-index: 40; left: 50%; top: 50%; display: grid; justify-items: center; gap: 0.2rem;
+  padding: 0.85rem 1.6rem 0.95rem; border-radius: 14px; background: rgb(5 5 7 / 0.86);
+  box-shadow: 0 0 0 1px rgb(244 242 238 / 0.12), 0 18px 50px rgb(0 0 0 / 0.5);
+  text-align: center; white-space: nowrap; max-width: calc(100vw - 32px); pointer-events: none; opacity: 0; transform: translate(-50%, -50%);
+}
+.c-intertitle__k { font: 600 0.75rem/1.2 var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); }
+/* surtitre et ligne du bas : à la ligne si besoin (sagas d'un cadran d'Éphémérides, sur téléphone) */
+.c-intertitle__k, .c-intertitle__y { white-space: normal; text-wrap: balance; }
+.c-intertitle__n { font: 700 clamp(2.4rem, 5vw, 3.6rem)/1 var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; color: var(--phase-color, var(--fg)); }
+.c-intertitle[data-saga] .c-intertitle__n { color: var(--saga-color, var(--fg)); }
+.c-intertitle__y { font-size: 0.95rem; color: var(--fg); font-variant-numeric: tabular-nums; }
+.c-intertitle.is-on { animation: c-intertitle 1.5s cubic-bezier(0.33, 0, 0.2, 1) both; }
+@keyframes c-intertitle {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+  16% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.03); }
+}
+@media (prefers-reduced-motion: reduce) { .c-intertitle.is-on { animation: none; } }
+.is-reduced-motion .c-intertitle.is-on { animation: none; }
+@media (forced-colors: active) {
+  .c-intertitle { background: Canvas; border: 1px solid CanvasText; }
+  .c-intertitle__n { color: CanvasText; }
+}
+
+/* -- médaillon d'un personnage (shell.js : medal) : initiales dans un anneau aux couleurs de ses phases -- */
+.c-medal {
+  --medal: 2.6rem;
+  position: relative; display: inline-grid; place-items: center; flex: none; width: var(--medal); height: var(--medal);
+  border-radius: 50%; background: var(--medal-ring, #8F8F9A);
+  font: 700 calc(var(--medal) * 0.36)/1 var(--font-display); letter-spacing: 0.04em; color: var(--fg); text-transform: uppercase;
+}
+.c-medal::before { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #0B0B10; box-shadow: inset 0 0 0 1px rgb(244 242 238 / 0.08); }
+.c-medal { isolation: isolate; }
+.c-medal::before { z-index: -1; }
+/* boutons de personnage : médaillon à gauche, nom et nombre d'œuvres à droite */
+.c-persos__btn { grid-template-columns: auto minmax(0, 1fr); column-gap: 0.7rem; align-items: center; padding-left: 0.5rem; }
+.c-persos__btn > .c-medal { grid-row: 1 / span 2; }
+.c-persos__btn > .c-persos__name, .c-persos__btn > .c-persos__n { grid-column: 2; }
+.c-persos__btn > .c-persos__name { align-self: end; }
+.c-persos__btn > .c-persos__n { align-self: start; }
+.c-persos__list .c-medal { --medal: 2.1rem; }
+.c-persos-dialog .c-persos__btn { min-height: 3.6rem; }
+.c-persos-dialog .c-medal { --medal: 2.75rem; }
+.c-persos__btn[aria-pressed="true"] .c-medal::before { background: #2A0A0C; }
+/* fiche : grand médaillon devant le nom */
+.c-perso-card__name { display: flex; align-items: center; gap: 0.75rem; }
+.c-perso-card__name .c-medal { --medal: 3.6rem; font-size: 1.25rem; letter-spacing: 0.06em; }
+.c-perso-card__nm { min-width: 0; overflow-wrap: anywhere; }
+@media (forced-colors: active) {
+  .c-medal { forced-color-adjust: none; background: CanvasText; color: CanvasText; }
+  .c-medal::before { background: Canvas; box-shadow: none; }
+}
+
+/* en-tête de la fiche personnage (shell.js) : fondu dans la fiche, sauf si une maquette l'en sort */
+.c-perso-card__head { display: contents; }
+.c-perso-card__head[hidden] { display: none; }
+.c-perso-card__aka--head { display: none; }
+
+/* affiche d'une œuvre (.c-affiche) : dans base.css (accueil et frises) */
+
+/* mode Phases : les cartes de phase remplacent le filtre saga / phase de la barre du haut */
+:root[data-mode="phases"] .c-tools .c-sagafilter { display: none; }
+/* … et l'ordre Sortie | Histoire, inutile par phase (la frise suit l'ordre de sortie : shell.js, state.order) */
+:root[data-mode="phases"] .c-tools .c-order { display: none; }
+
+/* -- « Vus et à voir » (shared/js/vus.js) --------------------------------------------------------
+   Grande fenêtre comme « Tous les personnages » : ce que montre la frise (Toutes, Vues, Pas encore
+   vues, À voir), puis les affiches par phase, qu'on touche pour les marquer. Chaque affiche garde
+   seulement sa date dessous (le titre est sur l'affiche et dans le nom accessible du bouton). */
+.c-vus-btn { position: relative; display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap; }
+.c-vus-btn .m-ico { width: 1.25em; height: 1.25em; }
+.c-vus-btn.is-on { border-color: var(--red-text); }
+.c-vus-btn__f:empty { display: none; }
+.c-vus-btn__f { position: relative; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--red); color: #fff; font-size: 0.8em; font-weight: 600; }
+@media (forced-colors: active) { .c-vus-btn__f { forced-color-adjust: none; background: Highlight; color: HighlightText; } }
+/* Réglages : le mot (icône des réglages du téléphone quand la place est comptée, ci-dessous) */
+.c-settings__ico { display: none; }
+/* en-tête sur une ligne (1100 à 1499 px) : la place est comptée → Réglages en icône (nom gardé pour les
+   lecteurs d'écran et en infobulle) ; œil + « Vus », et un point rouge au lieu
+   de la pastille quand la frise est filtrée (le nom accessible garde tout : « Vus et à voir, frise : … ») */
+@media (min-width: 1100px) and (max-width: 1499px) {
+  .c-tools .c-vus-btn { gap: 0.35rem; padding-left: 0.6rem; padding-right: 0.7rem; }
+  .c-tools .c-settings summary { display: inline-flex; align-items: center; justify-content: center; width: 44px; padding: 0; }
+  .c-tools .c-settings__ico { display: block; width: 20px; height: 20px; }
+  .c-settings__t { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .c-tools .c-settings summary { position: relative; }
+  .c-vus-btn__x, .c-vus-btn__f { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .c-vus-btn.is-on::after { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--red-text); }
+}
+@media (min-width: 1100px) and (max-width: 1499px) and (forced-colors: active) { .c-vus-btn.is-on::after { background: Highlight; } }
+.c-vus__sec { display: grid; gap: 0.5rem; }
+.c-vus__h { margin: 0; font: 600 0.8125rem/1.3 var(--font); letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-2); }
+.c-vus__chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.c-vus__chip {
+  display: inline-flex; align-items: center; gap: 0.5rem; min-height: 44px; padding: 0 0.95rem; cursor: pointer;
+  color: var(--fg); background: rgb(12 12 16 / 0.85); border: 1px solid #4A4A55; border-radius: 999px; font: inherit; font-size: 0.95rem;
+}
+.c-vus__chip-n { font-variant-numeric: tabular-nums; color: var(--fg-2); }
+.c-vus__chip[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #fff; font-weight: 600; }
+.c-vus__chip[aria-pressed="true"] .c-vus__chip-n { color: #fff; }
+.c-vus__chip[aria-disabled="true"] { opacity: 0.45; cursor: default; }
+.c-vus__chip:hover:not([aria-pressed="true"]):not([aria-disabled="true"]) { background: #24242C; }
+.c-vus__markrow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
+.c-vus__hint { margin: 0; max-width: 46ch; color: var(--fg-2); font-size: 0.9rem; }
+.c-vus__phases { display: grid; gap: 1.5rem; margin-top: 0.5rem; }
+.c-vus__phase { display: grid; gap: 0.75rem; }
+.c-vus__ph { margin: 0; padding-left: 0.6rem; border-left: 3px solid var(--phase-color, var(--fg-2)); font: 700 1.1rem/1.2 var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.c-vus__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem 0.85rem; grid-template-columns: repeat(auto-fill, minmax(min(8.5rem, 100%), 1fr)); }
+.c-vus__item {
+  position: relative; display: grid; gap: 0.4rem; width: 100%; padding: 0; text-align: center; cursor: pointer;
+  color: var(--fg); background: none; border: 0; border-radius: 6px; font: inherit;
+}
+.c-vus__item .c-vus__poster { border-radius: 6px; transition: box-shadow 0.2s ease, opacity 0.2s ease; }
+.c-vus__item:hover .c-vus__poster { box-shadow: 0 0 0 2px #8C8C96, 0 10px 26px rgb(0 0 0 / 0.5); }
+.c-vus__item:focus-visible { outline: 3px solid var(--focus, #fff); outline-offset: 4px; }
+.c-vus__item.is-vu .c-vus__poster { box-shadow: 0 0 0 3px var(--seen), 0 10px 26px rgb(0 0 0 / 0.5); } /* vue : vert, comme sur l'accueil */
+.c-vus__item.is-avoir .c-vus__poster { box-shadow: 0 0 0 3px var(--watch), 0 10px 26px rgb(0 0 0 / 0.5); } /* à voir : ivoire */
+.c-vus__item[aria-disabled="true"] { cursor: default; }
+.c-vus__item[aria-disabled="true"] .c-vus__poster { opacity: 0.45; }
+.c-vus__badge:empty { display: none; }
+.c-vus__badge {
+  position: absolute; top: 0.45rem; left: 0.45rem; z-index: 1; padding: 0.2rem 0.5rem; border-radius: 999px;
+  font: 700 0.75rem/1.2 var(--font); letter-spacing: 0.04em; color: var(--seen-ink); background: var(--seen); box-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+}
+.c-vus__item.is-avoir .c-vus__badge { color: #050507; background: var(--watch); }
+.c-vus__t { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.c-vus__d { font-size: 0.82rem; line-height: 1.3; color: var(--fg-2); }
+.c-vus__item.is-vu .c-vus__d, .c-vus__item.is-avoir .c-vus__d { color: var(--fg); }
+@media (forced-colors: active) {
+  .c-vus__item.is-vu .c-vus__poster, .c-vus__item.is-avoir .c-vus__poster { outline: 3px solid Highlight; }
+  .c-vus__badge { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+}
+.is-reduced-motion .c-vus__item .c-vus__poster { transition: none; }
+/* frise : « à voir » marqué d'une étoile (« ✓ » pour une œuvre vue) */
+.node.is-watch:not(.is-seen) .node__title::before { content: "★ "; content: "★ " / ""; color: var(--red-text); } /* « , à voir » lu (shell.js) */
+
+/* « Vus et à voir » : en tête de chaque phase, « Tout vu » et « Tout à voir » */
+.c-vus__phhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
+.c-vus__bulk { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.c-vus__bulkbtn { min-height: 40px; padding: 0 0.8rem; font-size: 0.875rem; }
+@media (pointer: coarse) { .c-vus__bulkbtn { min-height: 44px; } }
+
+/* -- les deux frises (shared/js/versions.js) : passer d'Éphémérides à Fil noir et inversement, dans
+   Réglages (fenêtre sur ordinateur, panneau du bas sur téléphone) ; deux vignettes, celle de la frise
+   ouverte cerclée de rouge */
+.c-versions { display: grid; gap: 0.5rem; padding-bottom: 0.75rem; margin-bottom: 0.25rem; border-bottom: 1px solid var(--line, #2C2C35); }
+.c-versions__t { margin: 0; font-weight: 600; }
+.c-versions__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; }
+.c-version {
+  display: grid; gap: 0.15rem; padding: 0.35rem 0.35rem 0.5rem; border: 1px solid #3A3A44; border-radius: 10px;
+  color: var(--fg); text-decoration: none; background: rgb(12 12 16 / 0.6);
+}
+.c-version__view { position: relative; display: block; overflow: hidden; aspect-ratio: 16 / 10; border-radius: 6px; background: #050507; margin-bottom: 0.3rem; }
+.c-version__view img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.c-version__name { font-weight: 600; line-height: 1.2; }
+.c-version__d { font-size: 0.8125rem; line-height: 1.25; color: var(--fg-2); }
+.c-version[aria-current="page"] { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red); }
+.c-version[aria-current="page"] .c-version__d { color: var(--red-text); }
+.c-version:hover:not([aria-current="page"]) { border-color: #8C8C96; background: #1A1A20; }
+.c-version:focus-visible { outline: 3px solid var(--focus, #fff); outline-offset: 2px; }
+.c-versions__mode { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.4rem; font-size: 0.875rem; color: var(--fg-2); }
+.c-versions__mode :is(a, button) {
+  display: inline-flex; align-items: center; min-height: 36px; padding: 0 0.75rem; border: 1px solid #3A3A44; border-radius: 999px;
+  color: var(--fg); text-decoration: none; background: none; font: inherit; cursor: pointer;
+}
+.c-versions__mode :is(a[aria-current="true"], button[aria-pressed="true"]) { background: #2A2A33; border-color: #8C8C96; font-weight: 600; }
+.c-versions__mode :is(a:not([aria-current="true"]), button:not([aria-pressed="true"])):hover { border-color: #8C8C96; }
+.c-versions__mode :is(a, button):focus-visible { outline: 3px solid var(--focus, #fff); outline-offset: 2px; }
+@media (pointer: coarse) { .c-versions__mode :is(a, button) { min-height: 44px; } }
+/* Réglages : lien « Versions à comparer » (.c-compare, base.css) */
+@media (forced-colors: active) { .c-version[aria-current="page"] { border-color: Highlight; box-shadow: inset 0 0 0 1px Highlight; } }
+
+/* -- squelette de chargement des frises (shared/js/boot.js pose is-loading, shell.js is-loaded) ---------
+   des blocs gris qu'un reflet balaie (un seul reflet pour toute la page : background-attachment fixed) ;
+   sans reflet si l'on préfère moins d'animations ; aucun si JavaScript ne tourne pas */
+.c-skel { display: none; }
+:root.is-loading .c-skel { display: block; position: relative; pointer-events: none; }
+:root.is-loading .c-skel .c-skel__b {
+  display: block; border-radius: 6px; background-color: rgb(244 242 238 / 0.08);
+  background-image: linear-gradient(100deg, transparent 38%, rgb(244 242 238 / 0.15) 50%, transparent 62%);
+  background-size: 200vw 100%; background-repeat: no-repeat; background-attachment: fixed;
+  animation: c-skel 1.6s ease-in-out infinite;
+}
+@keyframes c-skel { from { background-position: -150vw 0; } to { background-position: 150vw 0; } }
+@media (prefers-reduced-motion: reduce) { :root.is-loading .c-skel .c-skel__b { animation: none; background-image: none; } }
+@media (forced-colors: active) { :root.is-loading .c-skel .c-skel__b { background: none; border: 1px solid CanvasText; } }
+
+
+/* -- commandes toujours visibles ---------------------------------------------------------------
+   Grandes fenêtres (Tous les personnages, Vus et à voir) : l'en-tête reste en haut pendant qu'on fait
+   défiler (Fermer ; pour « Vus et à voir », ce que montre la frise et ce que devient une affiche touchée).
+   Fond opaque (le texte des affiches ne transparaît pas), qui déborde sur les marges (ombre étendue,
+   rognée en haut et en bas). */
+.c-persos-dialog__in { padding-top: 0; }
+.c-persos-dialog__head, .c-vus__top {
+  position: sticky; top: 0; z-index: 2;
+  padding-top: max(clamp(0.75rem, 2vw, 1.5rem), env(safe-area-inset-top, 0px));
+  background: #060609; box-shadow: 0 0 0 100vmax #060609; clip-path: inset(0 -100vmax);
+}
+:root .c-vus-dialog .c-vus__top > .c-persos-dialog__head { position: static; padding-top: 0; background: none; box-shadow: none; clip-path: none; }
+.c-vus__top { display: grid; gap: 0.75rem; padding-bottom: 0.85rem; border-bottom: 1px solid #3A3A44; }
+.c-vus__ctl { display: flex; flex-wrap: wrap; align-items: end; gap: 0.75rem 2.25rem; }
+.c-vus__ctl .c-vus__sec { gap: 0.35rem; min-width: 0; }
+.c-vus__mode button { white-space: nowrap; }
+.c-vus__top + .c-vus__hint { margin-top: -0.25rem; }
+/* ordinateur : intitulé et boutons sur la même ligne (en-tête moins haut) */
+@media (min-width: 768px) and (min-height: 521px) {
+  .c-vus__ctl { align-items: center; }
+  .c-vus__ctl .c-vus__sec { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.75rem; }
+}
+@media (max-width: 767px) {
+  /* « Fermer » sur la ligne du titre, le compteur dessous : en-tête plus court */
+  .c-persos-dialog__head { align-items: center; row-gap: 0.25rem; }
+  .c-persos-dialog__title { flex: 1 1 auto; }
+  .c-persos-dialog__close { order: 1; }
+  .c-persos-dialog__count { order: 2; flex-basis: 100%; }
+  .c-vus__ctl { display: grid; gap: 0.6rem; }
+  /* les quatre choix sur une ligne qui défile de côté (une seule hauteur de bouton) */
+  .c-vus__chips {
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+    margin-inline: calc(-1 * clamp(1rem, 3vw, 2.5rem)); padding: 3px clamp(1rem, 3vw, 2.5rem);
+  }
+  .c-vus__chips::-webkit-scrollbar { display: none; }
+  .c-vus__chip { flex: none; }
+  .c-vus__sec--mark { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.75rem; }
+}
+/* paysage peu haut : tout sur une ligne qui défile de côté, intitulés lus seulement par les lecteurs d'écran */
+@media (max-height: 520px) {
+  .c-vus__top { gap: 0.5rem; padding-bottom: 0.6rem; }
+  .c-vus__ctl { display: flex; flex-wrap: nowrap; align-items: center; gap: 1rem; overflow-x: auto; scrollbar-width: none; }
+  .c-vus__ctl::-webkit-scrollbar { display: none; }
+  .c-vus__ctl .c-vus__sec { display: flex; flex: none; }
+  .c-vus__ctl .c-vus__h { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .c-vus__chips { flex-wrap: nowrap; overflow: visible; margin: 0; padding: 0; }
+  .c-vus__chip { flex: none; }
+}
+@media (forced-colors: active) { .c-persos-dialog__head, .c-vus__top { border-bottom: 1px solid CanvasText; } }
+
+/* Réglages (ordinateur) : hauteur limitée à l'écran, en-tête « Réglages » + Fermer toujours visible */
+.c-settings__body { overflow-y: auto; overscroll-behavior: contain; padding-top: 0; }
+.c-settings__head {
+  position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  margin: 0 -1rem; padding: 0.5rem 0.5rem 0.5rem 1rem; background: #111116; border-bottom: 1px solid #2C2C35;
+}
+.c-settings__h { margin: 0; font-weight: 700; letter-spacing: 0.02em; }
+.c-settings__close {
+  display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid transparent; border-radius: 999px;
+  color: var(--fg); background: none; font: inherit; font-size: 1.05rem; cursor: pointer;
+}
+.c-settings__close:hover { background: #24242C; border-color: #4A4A55; }
+.c-settings__close:focus-visible { outline: 3px solid var(--focus, #fff); outline-offset: -3px; }
+.m-sheet .c-settings__head { display: none; } /* téléphone : le panneau du bas a son propre en-tête */
+.m-sheet .c-settings__body { padding-top: 0; }
+
+/* aperçu de la fiche (preview.js, Éphémérides grand écran) : l'affiche ouvre la fiche complète */
+.c-preview__poster.is-link { cursor: pointer; }
+.c-preview__poster.is-link:hover { border-color: var(--fg-2); box-shadow: 0 0 0 2px var(--phase-color, var(--fg-2)), 0 14px 32px rgb(0 0 0 / 0.5); }
+@media (prefers-reduced-motion: no-preference) { .c-preview__poster.is-link { transition: box-shadow 0.2s ease, border-color 0.2s ease; } }

@@ -1,0 +1,348 @@
+{
+  "schema_version": 1,
+  "reference": {
+    "title": "Ordre chronologique officiel du MCU (site de Marvel), reproduit par The Direct",
+    "url": "https://thedirect.com/article/marvel-studios-officially-places-daredevil-born-again-season-2-on-the-mcu-timeline",
+    "published": "2026-03-27",
+    "retrieved_at": "2026-10-14",
+    "note": "Liste à puces de 67 entrées reprise dans l'ordre. Les entrées hors périmètre (courts métrages One-Shot, séries Netflix, I Am Groot, et depuis le 19/10/2026 les épisodes spéciaux Werewolf by Night et The Guardians of the Galaxy Holiday Special) n'ont pas d'identifiant ; une saison supplémentaire (« Season 2 ») reste rattachée à sa série, placée à sa première apparition."
+  },
+  "order": [
+    {
+      "position": 1,
+      "title": "Captain America: The First Avenger",
+      "id": "Q275120"
+    },
+    {
+      "position": 2,
+      "title": "One Shot - Agent Carter",
+      "id": null
+    },
+    {
+      "position": 3,
+      "title": "Captain Marvel",
+      "id": "Q23781129"
+    },
+    {
+      "position": 4,
+      "title": "Iron Man",
+      "id": "Q192724"
+    },
+    {
+      "position": 5,
+      "title": "Iron Man 2",
+      "id": "Q205028"
+    },
+    {
+      "position": 6,
+      "title": "The Incredible Hulk",
+      "id": "Q466611"
+    },
+    {
+      "position": 7,
+      "title": "One Shot - A Funny Thing That Happened on the Way to Thor's Hammer",
+      "id": null
+    },
+    {
+      "position": 8,
+      "title": "Thor",
+      "id": "Q217020"
+    },
+    {
+      "position": 9,
+      "title": "One Shot - The Consultant",
+      "id": null
+    },
+    {
+      "position": 10,
+      "title": "The Avengers",
+      "id": "Q182218"
+    },
+    {
+      "position": 11,
+      "title": "One Shot - Item 47",
+      "id": null
+    },
+    {
+      "position": 12,
+      "title": "Thor: The Dark World",
+      "id": "Q1201853"
+    },
+    {
+      "position": 13,
+      "title": "Iron Man 3",
+      "id": "Q209538"
+    },
+    {
+      "position": 14,
+      "title": "One Shot - All Hail the King",
+      "id": null
+    },
+    {
+      "position": 15,
+      "title": "Captain America: The Winter Soldier",
+      "id": "Q1765358"
+    },
+    {
+      "position": 16,
+      "title": "Guardians of the Galaxy",
+      "id": "Q5887360"
+    },
+    {
+      "position": 17,
+      "title": "Guardians of the Galaxy Vol. 2",
+      "id": "Q20001199"
+    },
+    {
+      "position": 18,
+      "title": "I Am Groot",
+      "id": null
+    },
+    {
+      "position": 19,
+      "title": "Daredevil",
+      "id": null
+    },
+    {
+      "position": 20,
+      "title": "Jessica Jones",
+      "id": null
+    },
+    {
+      "position": 21,
+      "title": "Avengers: Age of Ultron",
+      "id": "Q14171368"
+    },
+    {
+      "position": 22,
+      "title": "Ant-Man",
+      "id": "Q5901134"
+    },
+    {
+      "position": 23,
+      "title": "Luke Cage",
+      "id": null
+    },
+    {
+      "position": 24,
+      "title": "Iron Fist",
+      "id": null
+    },
+    {
+      "position": 25,
+      "title": "The Defenders",
+      "id": null
+    },
+    {
+      "position": 26,
+      "title": "Captain America: Civil War",
+      "id": "Q18407657"
+    },
+    {
+      "position": 27,
+      "title": "Black Widow",
+      "id": "Q23894626"
+    },
+    {
+      "position": 28,
+      "title": "Black Panther",
+      "id": "Q23780734"
+    },
+    {
+      "position": 29,
+      "title": "The Punisher",
+      "id": null
+    },
+    {
+      "position": 30,
+      "title": "Spider-Man: Homecoming",
+      "id": "Q23010088"
+    },
+    {
+      "position": 31,
+      "title": "Doctor Strange",
+      "id": "Q18406872"
+    },
+    {
+      "position": 32,
+      "title": "Thor: Ragnarok",
+      "id": "Q22665878"
+    },
+    {
+      "position": 33,
+      "title": "Ant-Man and the Wasp",
+      "id": "Q22957393"
+    },
+    {
+      "position": 34,
+      "title": "Avengers: Infinity War",
+      "id": "Q23780914"
+    },
+    {
+      "position": 35,
+      "title": "Avengers: Endgame",
+      "id": "Q23781155"
+    },
+    {
+      "position": 36,
+      "title": "Loki",
+      "id": "Q64349029"
+    },
+    {
+      "position": 37,
+      "title": "What If...?",
+      "id": "Q65980671"
+    },
+    {
+      "position": 38,
+      "title": "Marvel Zombies",
+      "id": "Q111382701"
+    },
+    {
+      "position": 39,
+      "title": "WandaVision",
+      "id": "Q65980217"
+    },
+    {
+      "position": 40,
+      "title": "Shang-Chi and the Legend of the Ten Rings",
+      "id": "Q65768589"
+    },
+    {
+      "position": 41,
+      "title": "The Falcon and the Winter Soldier",
+      "id": "Q65979734"
+    },
+    {
+      "position": 42,
+      "title": "Spider-Man: Far From Home",
+      "id": "Q27985819"
+    },
+    {
+      "position": 43,
+      "title": "Eternals",
+      "id": "Q23894629"
+    },
+    {
+      "position": 44,
+      "title": "Spider-Man: No Way Home",
+      "id": "Q68934496"
+    },
+    {
+      "position": 45,
+      "title": "Doctor Strange in the Multiverse of Madness",
+      "id": "Q64211112"
+    },
+    {
+      "position": 46,
+      "title": "Hawkeye",
+      "id": "Q65980843"
+    },
+    {
+      "position": 47,
+      "title": "Moon Knight",
+      "id": "Q84712802"
+    },
+    {
+      "position": 48,
+      "title": "Black Panther: Wakanda Forever",
+      "id": "Q54860489"
+    },
+    {
+      "position": 49,
+      "title": "Echo",
+      "id": "Q111676994"
+    },
+    {
+      "position": 50,
+      "title": "She-Hulk: Attorney at Law",
+      "id": "Q84712806"
+    },
+    {
+      "position": 51,
+      "title": "Ms. Marvel",
+      "id": "Q84712813"
+    },
+    {
+      "position": 52,
+      "title": "Thor: Love and Thunder",
+      "id": "Q65768604"
+    },
+    {
+      "position": 53,
+      "title": "Ironheart",
+      "id": "Q108124282"
+    },
+    {
+      "position": 54,
+      "title": "Werewolf by Night",
+      "id": null
+    },
+    {
+      "position": 55,
+      "title": "The Guardians of the Galaxy Holiday Special",
+      "id": null
+    },
+    {
+      "position": 56,
+      "title": "Ant-Man and The Wasp: Quantumania",
+      "id": "Q105359456"
+    },
+    {
+      "position": 57,
+      "title": "Guardians of the Galaxy Vol. 3",
+      "id": "Q29226331"
+    },
+    {
+      "position": 58,
+      "title": "Secret Invasion",
+      "id": "Q108441863"
+    },
+    {
+      "position": 59,
+      "title": "The Marvels",
+      "id": "Q89474225"
+    },
+    {
+      "position": 60,
+      "title": "Deadpool & Wolverine",
+      "id": "Q102180106"
+    },
+    {
+      "position": 61,
+      "title": "Agatha All Along",
+      "id": "Q108837156"
+    },
+    {
+      "position": 62,
+      "title": "Daredevil: Born Again",
+      "id": "Q113244844"
+    },
+    {
+      "position": 63,
+      "title": "Captain America: Brave New World",
+      "id": "Q112322116"
+    },
+    {
+      "position": 64,
+      "title": "Thunderbolts*",
+      "id": "Q112322474"
+    },
+    {
+      "position": 65,
+      "title": "The Fantastic Four: First Steps",
+      "id": "Q105105219"
+    },
+    {
+      "position": 66,
+      "title": "Daredevil: Born Again Season 2",
+      "id": null,
+      "note": "saison supplémentaire : rattachée à la série, déjà placée"
+    },
+    {
+      "position": 67,
+      "title": "Wonder Man",
+      "id": "Q114779504"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+# Données TMDB : jamais versionnées (CGU TMDB : cache <= 6 mois, régénérées par la CI)
+data/tmdb/
+site/media/tmdb/
+# Caches et jetons locaux
+data/cache/
+tools/tmdb_key.txt
+__pycache__/
+*.pyc
+*.bak
+*.tmp
+# Pages générées par build_site.py
+site/generated/
+site/index.html
+site/oeuvres/
+site/pages/
+site/404.html
+site/hors-connexion.html
+site/sw.js
+site/data/
+site/comparer.html
+.claude/
+
+# maquettes écartées (B, D, socle du Lot 2) : gardées sur l'ordinateur, hors du dépôt
+maquettes_ecartees/

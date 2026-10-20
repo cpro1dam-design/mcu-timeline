@@ -1,0 +1,20 @@
+{
+  "site_name": "Frise MCU",
+  "site_name_note": "Nom provisoire : le nom définitif sera choisi avec la maquette retenue.",
+  "language": "fr",
+  "base_url": "https://cpro1dam-design.github.io/mcu-timeline/",
+  "editor": {
+    "anonymous": true,
+    "name": null,
+    "email": null,
+    "note": "Éditeur non professionnel anonyme (LCEN, loi n° 2004-575, art. 1-1 II) : seules les coordonnées de l'hébergeur sont publiées ; contact par le formulaire de signalement du dépôt. Pour s'identifier : anonymous false, name (et la loi demande alors aussi domicile et téléphone)."
+  },
+  "host": {
+    "name": "GitHub, Inc. (GitHub Pages)",
+    "address": "88 Colin P. Kelly Jr. St., San Francisco, CA 94107, États-Unis",
+    "contact": "https://support.github.com/contact",
+    "note": "Adresse : déclaration de confidentialité de GitHub, section « Contact Us » (https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement), relevée le 2026-10-20 ; GitHub n'y publie aucun numéro de téléphone."
+  },
+  "repo_url": "https://github.com/cpro1dam-design/mcu-timeline",
+  "tmdb_enabled": true
+}

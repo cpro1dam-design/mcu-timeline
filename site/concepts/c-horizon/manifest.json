@@ -1,0 +1,13 @@
+{
+  "name": "Fil noir · frise de l’univers Marvel (site de fan non officiel)",
+  "short_name": "Fil noir",
+  "description": "Frise de l’univers cinématographique Marvel (site de fan non officiel, non affilié à Marvel Studios ni à Disney).",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#050507",
+  "theme_color": "#050507",
+  "icons": [{ "src": "../../shared/img/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

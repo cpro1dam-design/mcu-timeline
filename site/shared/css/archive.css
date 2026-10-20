@@ -1,0 +1,365 @@
+/* Vue « Archives » commune. Structure neutre, habillée par les variables de chaque maquette :
+   --arch-font-display, --arch-font-text, --arch-accent (signature, ≥ 4,5:1 sur le panneau),
+   --arch-selected-bg / --arch-selected-fg (ligne choisie : rouge #E3262E + blanc, 4,6:1),
+   --arch-panel (fond des rangées, opacité ≥ 0,8). Le ciel de la maquette reste visible derrière. */
+
+.archives {
+  --arch-font-display: var(--font-display);
+  --arch-font-text: var(--font);
+  --arch-accent: var(--accent);
+  --arch-selected-bg: var(--red);
+  --arch-selected-fg: #FFFFFF;
+  --arch-panel: rgb(8 8 11 / 0.84);
+  --arch-line: rgb(245 243 239 / 0.16);
+  position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: none; max-height: none;
+  margin: 0; padding: 0; border: 0; color: var(--fg); background: transparent; overflow: hidden;
+  font-family: var(--arch-font-text);
+}
+.archives::backdrop {
+  background:
+    radial-gradient(120% 80% at 70% 30%, color-mix(in srgb, var(--nebula-1, #1A2238) 60%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--sky, #0F1424) 92%, #000) 0%, var(--sky, #0F1424) 60%, #05060A 100%);
+}
+@supports not (background: color-mix(in srgb, red, blue)) {
+  .archives::backdrop { background: var(--sky, #0F1424); }
+}
+.archives__inner { height: 100%; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+
+/* -- barre du haut -------------------------------------------------------------------- */
+.archives__bar {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 0.75rem 1.25rem;
+  padding: 0.75rem clamp(0.75rem, 2vw, 1.5rem); border-bottom: 1px solid var(--arch-line);
+}
+.archives__crumb ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem;
+  font: 600 0.8125rem/1.3 var(--arch-font-text); letter-spacing: 0.1em; text-transform: uppercase; color: var(--arch-accent); }
+.archives__crumb li + li::before { content: "/"; margin-right: 0.35rem; opacity: 0.7; }
+.archives__crumb [aria-current] { color: var(--fg-2); }
+.archives__tabs { display: flex; gap: 0.25rem; justify-self: center; }
+.archives__tabs [role="tab"] {
+  min-height: 44px; padding: 0.5rem 1rem; font: 600 0.95rem/1 var(--arch-font-text); color: var(--fg-2);
+  background: transparent; border: 0; border-bottom: 2px solid transparent; cursor: pointer;
+}
+.archives__tabs [role="tab"][aria-selected="true"] { color: var(--fg); border-bottom-color: var(--arch-accent); }
+.archives__tabs [role="tab"]:hover { color: var(--fg); }
+.archives__bar-end { display: flex; gap: 0.75rem; align-items: center; justify-self: end; }
+.archives__count { margin: 0; color: var(--arch-accent); font-size: 0.875rem; letter-spacing: 0.04em; white-space: nowrap; }
+.archives__layout { justify-self: end; }
+.archives__close {
+  min-width: 44px; min-height: 44px; border-radius: 999px; border: 1px solid var(--arch-line);
+  background: var(--arch-panel); color: var(--fg); cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0 0.9rem;
+}
+.archives__bar { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+.archives__bar-end { justify-self: end; }
+
+/* -- corps : Codex (liste à gauche, scène à droite) ----------------------------------- */
+.archives__body { display: grid; grid-template-columns: minmax(15rem, 22rem) minmax(0, 1fr); min-height: 0; }
+.archives__group { min-height: 0; overflow: auto; padding: 1rem clamp(0.75rem, 1.5vw, 1.25rem); border-right: 1px solid var(--arch-line); }
+.archives__group-title { font: 600 0.8125rem/1.3 var(--arch-font-text); letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-2); margin: 0 0 0.75rem; }
+.archives__perso { display: grid; gap: 0.35rem; margin-bottom: 1rem; }
+.archives__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+.archives__item {
+  width: 100%; min-height: 44px; display: grid; grid-template-columns: 2.4rem 1fr; grid-template-rows: auto auto;
+  column-gap: 0.6rem; align-items: center; text-align: left; padding: 0.5rem 0.75rem; cursor: pointer;
+  background: var(--arch-panel); color: var(--fg); border: 1px solid transparent; border-radius: 6px; font: inherit;
+}
+.archives__item:hover { border-color: var(--arch-line); }
+.archives__item[aria-current="true"] { background: var(--arch-selected-bg); color: var(--arch-selected-fg); }
+.archives__item[aria-current="true"] .archives__item-meta { color: var(--arch-selected-fg); }
+.archives__ribbon { grid-row: 1 / 3; align-self: stretch; display: grid; place-items: center; font: 700 0.85rem/1 var(--arch-font-display);
+  letter-spacing: 0.05em; border-right: 1px solid currentColor; opacity: 0.85; }
+.archives__item-title { font: 600 0.98rem/1.25 var(--arch-font-text); }
+.archives__item-meta { font-size: 0.8125rem; color: var(--fg-2); }
+
+.archives__stage { position: relative; min-height: 0; overflow: auto; display: grid;
+  grid-template-columns: 44px minmax(0, 0.9fr) minmax(0, 1.25fr) 44px; gap: clamp(1rem, 2.5vw, 2.5rem); align-items: start;
+  padding: clamp(1rem, 2.5vw, 2rem) clamp(0.5rem, 1.5vw, 1.5rem); }
+.archives__nav {
+  position: sticky; top: 40%; width: 44px; height: 64px; border-radius: 999px; border: 1px solid var(--arch-line);
+  background: var(--arch-panel); color: var(--fg); font: 400 2rem/1 var(--arch-font-display); cursor: pointer;
+}
+.archives__nav:disabled { opacity: 0.35; cursor: default; }
+.archives__visual { position: sticky; top: 1rem; display: grid; justify-items: center; }
+.archives__poster { width: min(100%, 22rem); aspect-ratio: 2 / 3; height: auto; border-radius: 4px; box-shadow: 0 24px 60px rgb(0 0 0 / 0.55); }
+.archives__poster--ph {
+  display: grid; align-content: end; gap: 0.4rem; padding: 1.25rem;
+  background:
+    radial-gradient(80% 60% at 30% 25%, color-mix(in srgb, var(--accent-film, #D9C49A) 28%, transparent), transparent 70%),
+    linear-gradient(160deg, var(--nebula-1, #1A2238), var(--sky, #0F1424) 70%);
+  border: 1px solid var(--arch-line);
+}
+.archives__ph-roman { font: 700 2.4rem/1 var(--arch-font-display); color: var(--phase-color, var(--arch-accent)); }
+.archives__ph-title { font: 700 1.25rem/1.15 var(--arch-font-display); text-transform: uppercase; letter-spacing: 0.04em; }
+.archives__mirror { width: min(100%, 22rem); height: 7rem; overflow: hidden; transform: scaleY(-1); opacity: 0.22;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 20%, #000 100%); mask-image: linear-gradient(to bottom, transparent 20%, #000 100%); pointer-events: none; }
+.archives__mirror .archives__poster { box-shadow: none; }
+.archives__text { max-width: 44rem; padding: 1rem 1.25rem 2rem; background: var(--arch-panel); border-radius: 8px; border: 1px solid var(--arch-line); }
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .archives__text, .archives__item, .archives__close, .archives__nav { -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+}
+.archives__kind { margin: 0; color: var(--phase-color, var(--arch-accent)); text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.8125rem; font-weight: 600; }
+.archives__text h2 { font: 700 clamp(1.8rem, 1.2rem + 2.4vw, 3rem)/1.05 var(--arch-font-display); margin: 0.25rem 0 0.25rem; outline-offset: 6px; }
+.archives__vo { margin: 0 0 0.75rem; color: var(--fg-3); font-style: italic; }
+.archives__status { margin: 0 0 0.75rem; color: var(--arch-accent); }
+.archives__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.5rem 1.25rem; margin: 0.75rem 0 0.5rem; }
+.archives__facts dt { color: var(--fg-3); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.archives__facts dd { margin: 0.1rem 0 0; }
+.archives__section { margin-top: 1.5rem; }
+.archives__section h3 { font: 600 1rem/1.3 var(--arch-font-text); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 0.5rem; }
+.archives__section h3 span { color: var(--arch-accent); }
+.archives__section h4 { font-size: 0.9rem; color: var(--fg-2); margin: 0.75rem 0 0.25rem; }
+.archives__section p { max-width: 66ch; }
+/* Apparitions : une case par rôle : monogramme du personnage (grand carré à ses initiales, anneau aux
+   couleurs des phases où il apparaît), rôle et interprète dessous (choix de l'utilisateur, 19/10/2026) */
+.archives__cast {
+  list-style: none; padding: 0; margin: 0.35rem 0 0; display: grid; gap: 0.9rem 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 6.5rem), 1fr));
+}
+.archives__cast > li[hidden] { display: none; }
+.cast { position: relative; display: grid; justify-items: center; align-content: start; gap: 0.1rem; min-width: 0; text-align: center; }
+.cast .c-medal {
+  width: 100%; height: auto; aspect-ratio: 1; margin-bottom: 0.35rem; border-radius: 12px;
+  font-size: clamp(1.5rem, 1rem + 1.6vw, 2.2rem); letter-spacing: 0.06em;
+}
+.cast .c-medal::before { inset: 4px; border-radius: 9px; background: radial-gradient(120% 90% at 30% 15%, #1C1C24, #08080B 72%); }
+.cast__role, .cast__actor { max-width: 100%; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+.cast__role { font: 600 0.875rem/1.2 var(--arch-font-text); color: var(--fg); -webkit-line-clamp: 3; }
+.cast__actor { font-size: 0.78rem; line-height: 1.25; color: var(--fg-2); -webkit-line-clamp: 2; }
+.archives__castmore { margin-top: 0.6rem; }
+/* « Vu » / « À voir » sous le titre de la fiche */
+.archives__marks { margin: 0.6rem 0 0.2rem; padding-top: 0; }
+/* téléphone : trois cases par ligne (liste deux fois moins longue) */
+@media (max-width: 767px), (max-width: 1099px) and (max-height: 520px) {
+  .archives__cast { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem 0.45rem; }
+  .cast__role { font-size: 0.8125rem; }
+  .cast__actor { font-size: 0.75rem; }
+}
+@media (forced-colors: active) { .cast .c-medal::before { background: Canvas; } }
+.archives__links { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.25rem; }
+.linklike { background: none; border: 0; padding: 0.35rem 0; min-height: 32px; color: var(--accent-strong); text-decoration: underline; text-underline-offset: 0.18em; font: inherit; cursor: pointer; }
+.archives__foot { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; padding: 0.4rem 1.25rem; border-top: 1px solid var(--arch-line); font-size: 0.8125rem; }
+.archives__foot a { color: var(--fg-2); display: inline-block; min-height: 32px; line-height: 32px; }
+
+/* -- Journal : catalogue d'affiches façon streaming ------------------------------------
+   En haut, un carrousel d'affiches : l'œuvre affichée au centre, ses voisines sur les côtés (on les
+   fait défiler au doigt, à la molette, aux flèches ‹ › ou au clavier) ; dessous, son titre et un court
+   synopsis ; plus bas, la fiche (dates, intrigue masquée, distribution, liens, sources). */
+.archives__rail { display: contents; }
+.archives__thumb, .archives__caption:empty { display: none; }
+.archives[data-layout="journal"] { --card-w: clamp(8.5rem, 13vw, 12rem); }
+.archives[data-layout="journal"] .archives__body { grid-template-columns: minmax(0, 1fr); grid-template-rows: max-content max-content; align-content: start; overflow-y: auto; overscroll-behavior: contain; } /* le contenu garde sa hauteur : la page défile */
+.archives[data-layout="journal"] .archives__group { grid-row: 1; min-width: 0; border: 0; overflow: visible; padding: 0.75rem 0 0; }
+.archives[data-layout="journal"] .archives__group-title, .archives[data-layout="journal"] .archives__perso { padding: 0 clamp(0.75rem, 2vw, 1.5rem); text-align: center; justify-items: center; }
+.archives[data-layout="journal"] .archives__rail { display: block; position: relative; }
+.archives[data-layout="journal"] .archives__list {
+  position: relative; display: flex; gap: clamp(0.6rem, 1.6vw, 1.25rem); overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
+  padding: 1.25rem calc(50% - var(--card-w) / 2) 1.5rem;
+}
+.archives[data-layout="journal"] .archives__list::-webkit-scrollbar { display: none; }
+.archives[data-layout="journal"] .archives__list > li { flex: none; width: var(--card-w); scroll-snap-align: center; }
+.archives[data-layout="journal"] .archives__item {
+  position: relative; display: grid; grid-template-columns: 1fr; grid-template-rows: auto auto auto; gap: 0.35rem; align-items: start;
+  width: 100%; height: auto; padding: 0; text-align: center; background: none; border: 0; box-shadow: none; border-radius: 6px;
+  transform: scale(0.84); transform-origin: 50% 40%; transition: transform 0.25s ease;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+/* œuvres voisines estompées : l'affiche et les textes, pas le ruban (son chiffre sombre resterait illisible
+   sur une couleur de phase à demi transparente) */
+.archives[data-layout="journal"] .archives__item :is(.archives__thumb, .archives__item-title, .archives__item-meta) { opacity: 0.5; transition: opacity 0.25s ease; }
+.archives[data-layout="journal"] .archives__item:hover :is(.archives__thumb, .archives__item-title, .archives__item-meta) { opacity: 0.8; }
+.archives[data-layout="journal"] .archives__item[aria-current="true"] :is(.archives__thumb, .archives__item-title, .archives__item-meta) { opacity: 1; }
+.archives[data-layout="journal"] .archives__item[aria-current="true"] { transform: scale(1.06); background: none; color: var(--fg); outline: 0; }
+.archives[data-layout="journal"] .archives__item:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+.archives[data-layout="journal"] .archives__thumb { display: block; }
+.archives[data-layout="journal"] .archives__thumb .archives__poster {
+  display: grid; width: 100%; aspect-ratio: 2 / 3; border-radius: 6px; border: 0; border-top: 3px solid var(--phase-color, var(--arch-line));
+  box-shadow: 0 14px 34px rgb(0 0 0 / 0.55);
+}
+.archives[data-layout="journal"] .archives__item[aria-current="true"] .archives__poster { box-shadow: 0 0 0 2px var(--phase-color, var(--red)), 0 22px 50px rgb(0 0 0 / 0.65); }
+.archives[data-layout="journal"] .archives__thumb .archives__poster--ph { padding: 0.75rem; }
+.archives[data-layout="journal"] .archives__thumb .archives__ph-roman { display: none; }
+.archives[data-layout="journal"] .archives__thumb .archives__ph-title { font-size: 0.92rem; }
+.archives[data-layout="journal"] .archives__ribbon {
+  position: absolute; top: 0; left: 0.5rem; width: 1.9rem; height: 2.1rem; display: grid; place-items: center; border: 0; opacity: 1;
+  background: var(--phase-color, var(--fg)); color: #050507; font-size: 0.75rem; font-weight: 700;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+.archives[data-layout="journal"] .archives__item-title { font-size: 0.9rem; line-height: 1.2; }
+.archives[data-layout="journal"] .archives__item-meta { color: var(--fg-2); border: 0; padding: 0; }
+.archives[data-layout="journal"] .archives__item[aria-current="true"] .archives__item-meta { color: var(--fg-2); }
+/* boutons ‹ › posés sur les bords du carrousel */
+.archives[data-layout="journal"] .archives__rail > .archives__nav {
+  position: absolute; z-index: 2; top: calc(1.25rem + var(--card-w) * 0.75 - 32px); width: 48px; height: 64px;
+}
+.archives[data-layout="journal"] .archives__rail > .archives__nav--prev { left: clamp(0.5rem, 3vw, 2.5rem); }
+.archives[data-layout="journal"] .archives__rail > .archives__nav--next { right: clamp(0.5rem, 3vw, 2.5rem); }
+/* sous le carrousel : titre et court synopsis de l'œuvre au centre */
+.archives[data-layout="journal"] .archives__caption {
+  display: grid; justify-items: center; gap: 0.35rem; max-width: 46rem; margin: 0 auto; padding: 0.25rem clamp(1rem, 3vw, 1.5rem) 1.5rem; text-align: center;
+}
+.archives[data-layout="journal"] .archives__caption h2 { margin: 0; font: 700 clamp(1.6rem, 1.1rem + 2vw, 2.6rem)/1.05 var(--arch-font-display); outline-offset: 6px; }
+.archives[data-layout="journal"] .archives__caption .archives__vo { margin: 0; }
+.archives[data-layout="journal"] .archives__synopsis { margin: 0.35rem 0 0; }
+.archives[data-layout="journal"] .archives__synopsis h3 { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.archives[data-layout="journal"] .archives__synopsis p { margin: 0.25rem auto; max-width: 62ch; font-size: 1.02rem; line-height: 1.55; }
+.archives[data-layout="journal"] .archives__synopsis .credit { font-size: 0.8rem; color: var(--fg-3); }
+.archives[data-layout="journal"] .archives__more { margin-top: 0.5rem; }
+/* plus bas : la fiche détaillée */
+.archives[data-layout="journal"] .archives__stage { grid-row: 2; display: block; overflow: visible; padding: 0 clamp(0.75rem, 2vw, 1.5rem) 2rem; border-top: 0; }
+.archives[data-layout="journal"] .archives__visual { display: none; }
+.archives[data-layout="journal"] .archives__text { max-width: 60rem; margin: 0 auto; }
+.archives[data-layout="journal"] .archives__text > .archives__facts { margin-top: 0; }
+.is-reduced-motion .archives[data-layout="journal"] .archives__item, .is-reduced-motion .archives[data-layout="journal"] .archives__item > * { transition: none; }
+@media (prefers-reduced-motion: reduce) { .archives[data-layout="journal"] .archives__item, .archives[data-layout="journal"] .archives__item > * { transition: none; } }
+
+/* -- mobile ------------------------------------------------------------------------- */
+@media (max-width: 767px), (max-height: 520px) {
+  .archives__bar { grid-template-columns: minmax(0, 1fr) auto; row-gap: 0.4rem; }
+  .archives__bar > .archives__crumb { grid-column: 1; grid-row: 1; }
+  .archives__bar > .archives__bar-end { grid-column: 2; grid-row: 1; gap: 0.5rem; }
+  .archives__bar > .archives__tabs { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; overflow-x: auto; }
+  .archives__count { display: none; }
+  .archives__close-label { display: none; }
+  .archives__body, .archives[data-layout="journal"] .archives__body { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); overflow: auto; }
+  .archives__group { grid-row: 2 !important; border-right: 0; border-top: 1px solid var(--arch-line); overflow: visible; }
+  .archives__stage { grid-row: 1 !important; grid-template-columns: 44px minmax(0, 1fr) 44px; overflow: visible; }
+  .archives__visual { grid-column: 2; position: static; }
+  .archives__text { grid-column: 1 / -1; grid-row: 2; }
+  .archives__nav { position: static; align-self: center; grid-row: 1; }
+  .archives__nav--next { grid-column: 3; }
+  .archives__poster { width: min(60vw, 14rem); }
+  .archives__mirror { width: min(60vw, 14rem); height: 3.5rem; }
+  .archives__list { grid-auto-flow: column; grid-auto-columns: 75%; overflow-x: auto; scroll-snap-type: x proximity; }
+  .archives__item { scroll-snap-align: start; }
+}
+
+@media (max-width: 767px), (max-height: 520px) {
+  /* Journal sur téléphone : l'affiche au centre occupe l'essentiel, les voisines dépassent sur les bords ; on glisse du doigt */
+  .archives[data-layout="journal"] { --card-w: min(56vw, 15rem); }
+  .archives[data-layout="journal"] .archives__group { grid-row: 1 !important; border-top: 0; }
+  .archives[data-layout="journal"] .archives__stage { grid-row: 2 !important; display: block; }
+  .archives[data-layout="journal"] .archives__list { display: flex; grid-auto-flow: unset; grid-auto-columns: unset; scroll-snap-type: x mandatory; }
+  .archives[data-layout="journal"] .archives__item { scroll-snap-align: none; }
+  .archives[data-layout="journal"] .archives__text { grid-column: auto; grid-row: auto; }
+  .archives[data-layout="journal"] .archives__rail > .archives__nav { display: none; }
+}
+
+@media (forced-colors: active) {
+  .archives::backdrop { background: Canvas; }
+  .archives__item[aria-current="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .archives__mirror { display: none; }
+}
+
+/* code couleur : bande de phase sur chaque entrée du groupe, et sur la fiche affichée */
+.archives__item { box-shadow: inset 3px 0 0 0 var(--phase-color, transparent); }
+.archives__stage { border-top: 3px solid var(--phase-color, transparent); }
+
+/* -- téléphone : interface « appli » ---------------------------------------------------------------
+   En haut : Retour (à gauche), Codex | Journal (à droite), puis les onglets du groupe. En bas : œuvre
+   précédente, position dans le groupe, œuvre suivante (à portée du pouce). Les mentions sont dans le
+   panneau Réglages de la page : elles quittent l'écran des Archives. */
+.archives__dock, .archives__close-back { display: none; }
+@media (max-width: 767px), (max-width: 1099px) and (max-height: 520px) {
+  .archives__inner { grid-template-rows: auto minmax(0, 1fr) auto; }
+  .archives__foot { display: none; }
+  .archives__bar {
+    grid-template-columns: auto minmax(0, 1fr) auto; row-gap: 0.35rem; column-gap: 0.5rem;
+    padding: max(0.45rem, env(safe-area-inset-top, 0px)) 12px 0; border-bottom: 2px solid var(--red);
+  }
+  .archives__bar > .archives__crumb { display: none; }
+  .archives__bar > .archives__close { grid-column: 1; grid-row: 1; }
+  .archives__bar > .archives__bar-end { grid-column: 3; grid-row: 1; }
+  .archives__bar > .archives__tabs { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; justify-content: space-between; }
+  .archives__tabs [role="tab"] { flex: 1 1 auto; padding: 0.5rem 0.4rem; }
+  .archives__close { gap: 0.3rem; padding: 0 0.95rem 0 0.7rem; }
+  .archives__close-x { display: none; }
+  .archives__close-back { display: inline; font-size: 1.6rem; line-height: 1; margin-top: -0.15rem; }
+  .archives__close-label { display: inline; font-weight: 600; }
+  .archives__layout button { padding: 0.5rem 0.8rem; }
+  .archives__stage { grid-template-columns: minmax(0, 1fr); }
+  .archives__visual, .archives__text { grid-column: 1; }
+  /* minmax(0) : la rangée de cartes (Codex) défile dans sa largeur au lieu d'élargir l'écran */
+  .archives__body, .archives[data-layout="journal"] .archives__body { grid-template-columns: minmax(0, 1fr); }
+  .archives__group, .archives__stage { min-width: 0; }
+  .archives__text { max-width: none; }
+  .archives__mirror { display: none; } /* le reflet décoratif cède la place au texte */
+  .archives__dock {
+    display: grid; grid-template-columns: 52px minmax(0, 1fr) 52px; align-items: center; gap: 0.5rem;
+    padding: 0.4rem max(12px, env(safe-area-inset-right, 0px)) calc(0.4rem + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+    background: rgb(5 5 7 / 0.96); border-top: 1px solid var(--arch-line);
+  }
+  .archives__dock .archives__nav { position: static; display: grid; place-items: center; width: 52px; height: 48px; padding: 0; border-radius: 999px; }
+  .archives__dock .archives__nav--prev { grid-column: 1; }
+  .archives__dock .archives__nav--next { grid-column: 3; }
+  .archives__pos { grid-column: 2; grid-row: 1; display: grid; justify-items: center; gap: 0.05rem; margin: 0; text-align: center; min-width: 0; }
+  .archives__pos-g { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 0.72rem/1.3 var(--arch-font-text); letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-2); }
+  .archives__pos-n { font: 700 1.05rem/1.1 var(--arch-font-display); color: var(--fg); }
+}
+@media (forced-colors: active) { .archives__dock { border-top: 1px solid CanvasText; } }
+
+/* téléphone, Journal : l'affiche se règle sur la hauteur de l'écran, pour que le titre de l'œuvre reste
+   visible au-dessus de la barre du bas (barres du navigateur comprises) ; le groupe Personnage met son
+   sélecteur sur une ligne et masque visuellement l'intitulé du groupe, redondant avec lui */
+@media (max-width: 767px), (max-width: 1099px) and (max-height: 520px) {
+  .archives[data-layout="journal"] .archives__group { --card-w: max(7rem, min(56vw, 15rem, calc((100dvh - 23rem) / 1.5))); }
+  .archives[data-layout="journal"] .archives__group:is([data-group="perso"], [data-group="chrono"]) { --card-w: max(7rem, min(56vw, 15rem, calc((100dvh - 26.5rem) / 1.5))); } /* sélecteur de personnage ou boutons d'ordre */
+  .archives__perso { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem; }
+  .archives[data-layout="journal"] .archives__perso { justify-content: center; }
+  .archives__perso label { flex: none; color: var(--fg-2); }
+  .archives__perso select { flex: 1 1 auto; min-width: 0; max-width: 20rem; }
+  .archives__group[data-group="perso"] .archives__group-title {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .archives[data-layout="journal"] .archives__list { padding-top: 0.9rem; padding-bottom: 1.1rem; }
+}
+
+/* -- ordre (groupe Chronologie) et cartes du Journal -------------------------------------------------
+   Le Journal montre l'affiche et la date : le titre de l'œuvre au centre est écrit en grand dessous (le
+   titre des cartes reste dans leur nom accessible) ; l'affiche provisoire de l'œuvre au centre n'y
+   répète pas son titre. */
+.archives__order { display: flex; margin: 0 0 0.75rem; }
+.archives[data-layout="journal"] .archives__order { justify-content: center; padding: 0 clamp(0.75rem, 2vw, 1.5rem); }
+.archives__item-date { display: none; }
+.archives[data-layout="journal"] .archives__item-title {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.archives[data-layout="journal"] .archives__item-meta { display: none; }
+.archives[data-layout="journal"] .archives__item-date { display: block; font-size: 0.82rem; color: var(--fg-2); opacity: 0.5; transition: opacity 0.25s ease; }
+.archives[data-layout="journal"] .archives__item:hover .archives__item-date { opacity: 0.8; }
+.archives[data-layout="journal"] .archives__item[aria-current="true"] .archives__item-date { opacity: 1; color: var(--fg); }
+.archives[data-layout="journal"] .archives__item[aria-current="true"] .archives__ph-title { visibility: hidden; }
+/* affiche provisoire de la scène (Codex) : le chiffre de la phase seul, le titre est à côté */
+.archives__visual .archives__poster--ph { align-content: end; }
+@media (max-width: 767px), (max-width: 1099px) and (max-height: 520px) {
+  .archives__order { justify-content: center; margin-bottom: 0.25rem; }
+  .archives__order .segmented { width: auto; }
+  /* l'ordre et le sélecteur de personnage disent déjà ce qu'est le groupe */
+  .archives__group[data-group="chrono"] .archives__group-title {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+}
+
+/* -- Journal (ordinateur) : barre flottante ‹ position › quand le carrousel est sorti de l'écran
+   (collée en bas de la zone qui défile ; masquée sur téléphone, qui a sa barre du bas) */
+.archives__float { display: none; }
+.archives[data-layout="journal"] .archives__float {
+  position: sticky; bottom: 0.9rem; z-index: 3; grid-row: 3; justify-self: center;
+  display: grid; grid-template-columns: 44px minmax(0, auto) 44px; align-items: center; gap: 0.5rem;
+  margin: 0 0 0.9rem; padding: 0.3rem; border: 1px solid var(--arch-line); border-radius: 999px;
+  background: rgb(5 5 7 / 0.92); box-shadow: 0 14px 34px rgb(0 0 0 / 0.55);
+  visibility: hidden; opacity: 0; transform: translateY(0.5rem);
+}
+.archives[data-layout="journal"] .archives__float.is-on { visibility: visible; opacity: 1; transform: none; }
+.archives__float .archives__nav { position: static; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; font-size: 1.7rem; }
+.archives__fpos { display: grid; justify-items: center; gap: 0.05rem; margin: 0; padding: 0 0.5rem; min-width: 7.5rem; max-width: 18rem; text-align: center; }
+.archives__fpos .archives__pos-g { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 0.72rem/1.3 var(--arch-font-text); letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-2); }
+.archives__fpos .archives__pos-n { font: 700 1.05rem/1.1 var(--arch-font-display); color: var(--fg); }
+@media (prefers-reduced-motion: no-preference) {
+  .archives[data-layout="journal"] .archives__float { transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s; }
+  .archives[data-layout="journal"] .archives__float.is-on { transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s; }
+}
+.is-reduced-motion .archives[data-layout="journal"] .archives__float { transition: none; }
+@media (max-width: 767px), (max-width: 1099px) and (max-height: 520px) {
+  .archives[data-layout="journal"] .archives__float { display: none; }
+}
+@media (forced-colors: active) { .archives[data-layout="journal"] .archives__float { border: 1px solid CanvasText; } }

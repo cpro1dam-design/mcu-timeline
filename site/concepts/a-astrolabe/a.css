@@ -1,0 +1,810 @@
+/* Éphémérides — maquette A : l'astrolabe.
+   Signature rouge, blanc, noir : rouge #E3262E en aplats (nom du site, réglage actif, ligne choisie),
+   rouge clair #FF5A5F en filets (repère de l'index, liseré du fil, œuvre courante et œuvres allumées,
+   séparateurs de phases, arc de constellation) ; tout le reste est gravé en blanc.
+   (Les noms de variables --gold / --ivory sont historiques : ils portent le rouge et le blanc.)
+   Typographie : Archivo étroit (font-stretch 64–75 %, capitales espacées) pour les titres,
+   Newsreader pour les textes ; rien sous 12 px, et au moins 75 % de largeur sous 13 px.
+   Contrastes (sur #07070A) : rouge clair 6,5:1 (≥ 3:1 sur le ciel le plus clair) ; blanc 17:1 ;
+   #C4C4CC 11:1 ; séparateur de sagas #E3262E 4,4:1 ; fil noir sur liseré 6,6:1 ;
+   bandes blanches ≥ 0,42 d'opacité ≥ 3,5:1 ; blanc sur rouge 4,6:1. */
+
+:root {
+  --gold: #FF5A5F;
+  --ivory: #F4F2EE;
+  --gold-2: #E3262E;
+  --ink: #07070A;
+  --mist: #C4C4CC;
+  --signature: #E3262E;
+  --signature-text: #FF5A5F;
+  --thread-rim: #FF5A5F;
+  --thread-core: #040405;
+  --focus: #FFFFFF;
+  --f-title: 'Archivo', 'Arial Narrow', system-ui, sans-serif;
+  --f-text: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-display: var(--f-title);
+}
+
+body { font-family: var(--f-text); }
+
+/* -- en-tête ----------------------------------------------------------------------------- */
+.c-header {
+  background: linear-gradient(180deg, rgb(5 5 7 / 0.95), rgb(5 5 7 / 0.8));
+  border-bottom: 2px solid var(--red);
+  gap: 0.4rem 1.5rem;
+}
+.c-brand { flex-direction: column; gap: 0; }
+.c-brand a {
+  font-family: var(--f-title); font-stretch: 66%; font-weight: 640; font-size: 1.5rem; line-height: 1;
+  letter-spacing: 0.2em; text-transform: uppercase; color: #fff; background: var(--red); padding: 0.32rem 0.45rem 0.26rem 0.6rem;
+}
+.c-brand a:hover { color: #fff; background: #C81E25; }
+.c-brand__tag { font-family: var(--f-text); font-style: italic; font-size: 0.875rem; color: #B9B9C2; }
+.c-modes a {
+  font-family: var(--f-title); font-stretch: 75%; font-weight: 600; font-size: 0.84rem;
+  letter-spacing: 0.16em; text-transform: uppercase; color: #C0C0C8; border-bottom: 1px solid transparent;
+}
+.c-modes a[aria-current="page"] { color: #fff; border-bottom-color: var(--red); }
+.segmented button, .button, .c-settings summary {
+  font-family: var(--f-title); font-stretch: 75%; font-weight: 520; letter-spacing: 0.05em; font-size: 0.95rem;
+}
+.segmented { border-color: #45454F; }
+.segmented button[aria-pressed="true"] { background: var(--red); color: #fff; }
+.c-settings__body { background: #0B0B0E; border-color: #45454F; font-family: var(--f-text); }
+.c-field { font-family: var(--f-title); font-stretch: 75%; letter-spacing: 0.05em; }
+.c-field label { text-transform: uppercase; letter-spacing: 0.16em; font-size: 0.84rem; color: var(--mist); }
+
+/* -- zoom, aide, pied de page ------------------------------------------------------------ */
+.c-zoom { background: linear-gradient(0deg, rgb(5 5 7 / 0.95), rgb(5 5 7 / 0.74)); border-top: 0.5px solid rgb(244 242 238 / 0.14); }
+.c-zoom__label {
+  font-family: var(--f-title); font-stretch: 75%; font-weight: 600; font-size: 0.82rem;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--mist);
+}
+.c-help summary { font-family: var(--f-title); font-stretch: 75%; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.9rem; color: var(--ivory); }
+.c-help li + li { margin-top: 0.35rem; }
+.c-footer { border-top-width: 0.5px; }
+
+/* -- cadran : couches ---------------------------------------------------------------------- */
+main#contenu { position: relative; }
+.frise { min-height: 0; overflow: hidden; overflow: clip; touch-action: pan-y pinch-zoom; }
+.frise.is-dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; }
+.astro-plate, .astro-index { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.astro-plate { z-index: 0; }
+.frise__svg { z-index: 1; will-change: transform; }
+.astro-index { z-index: 2; }
+.astro-phases { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+:root:not(.is-list-view) .oeuvres { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+:root:not(.is-list-view) .node { pointer-events: auto; }
+:root:not(.is-list-view) .node.is-near { z-index: var(--nz, 1); } /* a.js, updateNear : la plus proche de l'index au-dessus */
+:root:not(.is-list-view) .node:hover, :root:not(.is-list-view) .node:focus-within { z-index: 9; }
+
+/* platine et limbe (fixes) : gravure ivoire, discrète */
+.astro-disc { fill: rgb(6 6 8 / 0.86); stroke: none; }
+.astro-plate path, .astro-plate circle, .astro-rete path, .astro-rete circle, .astro-index path,
+.astro-index circle, .astro-index line { vector-effect: non-scaling-stroke; }
+.astro-hair { fill: none; stroke: var(--ivory); stroke-width: 0.6; opacity: 0.3; }
+.astro-hair--ivory { opacity: 0.45; }
+.astro-hair--faint { opacity: 0.16; }
+.astro-tick { fill: none; stroke: var(--ivory); stroke-width: 0.6; opacity: 0.3; stroke-linecap: butt; }
+.astro-tick--major { stroke-width: 0.9; opacity: 0.6; }
+.astro-tick--work { stroke-width: 0.8; opacity: 0.5; }
+.astro-tick--ten { stroke-width: 0.8; opacity: 0.6; }
+/* couronne des rangs : chiffres romains gravés (tournent avec le cadran) */
+.astro-num {
+  font-family: var(--f-title); font-stretch: 75%; font-weight: 600; font-size: 12px; letter-spacing: 0.12em;
+  fill: var(--ivory); opacity: 0.62;
+}
+
+/* anneaux des sagas, séparateur, secteurs de phases (tournent avec le fil) */
+.astro-ring { stroke: none; fill: transparent; transition: fill 0.2s ease; }
+.astro-sep-gap { fill: none; stroke: #050507; stroke-width: 9; opacity: 0.9; }
+.astro-sep { fill: none; stroke: var(--ivory); stroke-width: 1.8; stroke-dasharray: 7 5; opacity: 0.85; }
+.astro-band { fill: rgb(244 242 238 / 0.07); stroke: rgb(244 242 238 / 0.5); stroke-width: 0.5; transition: fill 0.2s ease, stroke 0.2s ease; }
+.astro-band--b { fill: rgb(244 242 238 / 0.03); stroke: rgb(244 242 238 / 0.42); }
+.astro-band--saga { fill: rgb(244 242 238 / 0.04); stroke: rgb(244 242 238 / 0.42); }
+.astro-band--multiverse { fill: rgb(244 242 238 / 0.11); stroke: rgb(244 242 238 / 0.55); }
+.astro-divider { fill: none; stroke: var(--gold); stroke-width: 0.8; opacity: 0.85; }
+.astro-rete, .astro-stars, .astro-phases { transition: opacity 0.2s ease; }
+.frise.is-morphing .astro-rete, .frise.is-morphing .astro-stars, .frise.is-morphing .astro-phases { opacity: 0; }
+
+/* N0 : les deux anneaux se lisent comme deux sagas */
+.frise[data-zoom="sagas"] .astro-ring--inner { fill: rgb(244 242 238 / 0.04); }
+.frise[data-zoom="sagas"] .astro-ring--outer { fill: rgb(244 242 238 / 0.085); }
+.frise[data-zoom="sagas"] .astro-band { fill: transparent; stroke: transparent; }
+.frise[data-zoom="sagas"] .astro-divider { opacity: 0; }
+/* ordre de l'histoire (sagas entremêlées, pas d'anneaux) : les secteurs portent la saga */
+.frise[data-zoom="sagas"] .astro-rete.no-rings .astro-band[data-saga="infinity"] { fill: rgb(244 242 238 / 0.04); stroke: rgb(244 242 238 / 0.42); }
+.frise[data-zoom="sagas"] .astro-rete.no-rings .astro-band[data-saga="multiverse"] { fill: rgb(244 242 238 / 0.16); stroke: rgb(244 242 238 / 0.6); }
+/* N1 et mode Phases : secteurs mis en valeur */
+.frise[data-zoom="phases"] .astro-band, [data-mode="phases"] .frise:not([data-zoom="sagas"]) .astro-band { fill: rgb(244 242 238 / 0.14); stroke: rgb(244 242 238 / 0.8); }
+.frise[data-zoom="phases"] .astro-band--b, [data-mode="phases"] .frise:not([data-zoom="sagas"]) .astro-band--b { fill: rgb(244 242 238 / 0.06); stroke: rgb(244 242 238 / 0.6); }
+
+/* fil noir : traitement « rim » (cœur noir 3 px + liseré doré), sillon gravé dessous */
+/* fil fin : un seul trait rouge, séparé du ruban de la phase par un filet noir (plus de double trait) */
+.frise .thread__mask { stroke: #050507; stroke-width: 4; opacity: 1; }
+.frise .thread__rim { stroke: var(--thread-rim); stroke-width: 1.75; }
+.frise .thread__core { display: none; }
+.frise .thread__branch .thread__mask { stroke-width: 3.5; }
+.frise .thread__branch .thread__rim { stroke-width: 1.6; }
+[data-mode="personnages"] .frise .thread__main, [data-mode="personnages"] .frise .thread__branch { opacity: 0.55; }
+
+/* constellation (mode Personnages) */
+.astro-arc { fill: none; stroke: var(--gold); stroke-width: 0.9; opacity: 0.9; stroke-linecap: round; }
+
+/* index : repère, alidade, fenêtre (or) */
+.astro-pointer { fill: var(--gold); stroke: none; }
+.astro-rule { stroke: var(--gold); stroke-width: 0.8; opacity: 0.85; }
+.astro-rule--in { opacity: 0.4; stroke-dasharray: 2 4; }
+.astro-window { fill: none; stroke: var(--gold); stroke-width: 1; }
+
+/* noms des sagas gravés (bas du cadran, fixes) */
+.astro-saga {
+  font-family: var(--f-title); font-stretch: 75%; font-weight: 600; font-size: 12px; letter-spacing: 0.28em;
+  text-transform: uppercase; fill: var(--ivory); paint-order: stroke; stroke: #050507; stroke-width: 4px;
+  stroke-linejoin: round; opacity: 0.8; transition: opacity 0.2s ease;
+}
+.astro-saga--inner { opacity: 0.9; }
+.frise[data-zoom="sagas"] .astro-saga { font-size: 15px; letter-spacing: 0.32em; opacity: 1; }
+
+/* -- œuvres : points sur la spirale -------------------------------------------------------- */
+.node { --dot: 17px; } /* points bien visibles (demande de l'utilisateur, 2026-10-20 ; 12 px avant) */
+.frise[data-zoom="sagas"] .node { --dot: 11px; }
+.node.is-current { --dot: 23px; }
+:root:not(.is-list-view) .node__btn {
+  position: relative; display: block; width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0;
+  color: var(--ivory); background: transparent; border: 0; border-radius: 50%; cursor: pointer;
+}
+:root:not(.is-list-view) .node__btn::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: var(--dot); height: var(--dot);
+  margin: calc(var(--dot) / -2) 0 0 calc(var(--dot) / -2); border-radius: 50%; box-sizing: border-box;
+  background: var(--ivory); border: 2.5px solid var(--phase-color, var(--ivory)); box-shadow: 0 0 0 2.5px var(--ink); /* point clair, cerclé de la couleur de sa phase : il ressort sur le ruban du fil */
+  transition: width 0.2s ease, height 0.2s ease, margin 0.2s ease, background-color 0.2s ease;
+}
+:root:not(.is-list-view) .node[data-kind="series"] .node__btn::before { background: var(--ink); }
+:root:not(.is-list-view) .node[data-status="upcoming"] .node__btn::before,
+:root:not(.is-list-view) .node[data-status="tba"] .node__btn::before { background: var(--ink); border: 2px dashed var(--phase-color, var(--ivory)); }
+:root:not(.is-list-view) .node.is-highlighted .node__btn::before { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 0 2.5px var(--ink), 0 0 0 4px rgb(255 90 95 / 0.55); }
+:root:not(.is-list-view) .node.is-current .node__btn::before {
+  background: var(--gold); border: 1.5px solid var(--gold); box-shadow: 0 0 0 2.5px var(--ink), 0 0 16px 3px rgb(255 90 95 / 0.5);
+}
+/* place provisoire (ordre de l'histoire) : pointillés */
+:root:not(.is-list-view)[data-order="story"] .node[data-provisional="true"] .node__btn::after {
+  content: ""; position: absolute; inset: 9px; border-radius: 50%; border: 1.2px dotted var(--ivory); pointer-events: none;
+}
+/* autre univers (Terre-828…) : un losange plein de couleur à part (--uni), étiquette toujours visible sous
+   le point, branche du fil en tirets de la même couleur (choix du 2026-10-20, version « losange » ;
+   :root:root garde le poids de l'ancien sélecteur de version, donc la priorité sur les autres états). */
+.node__uni { display: none; }
+:root:not(.is-list-view) .node[data-alt] { z-index: 1; }
+:root:not(.is-list-view) .node[data-alt] .node__uni {
+  display: block; position: absolute; left: 22px; top: calc(22px + var(--dot) / 2 + 10px); transform: translateX(-50%); pointer-events: none;
+  padding: 0.12rem 0.42rem 0.1rem; border: 1px solid var(--uni); border-radius: 999px; background: rgb(8 8 11 / 0.92);
+  font: 600 0.625rem/1.1 var(--f-title); font-stretch: 75%; letter-spacing: 0.1em; text-transform: uppercase; color: var(--uni); white-space: nowrap;
+}
+:root:root:not(.is-list-view) .node[data-alt] .node__btn::before { border-radius: 3px; transform: rotate(45deg); }
+:root:root:not(.is-list-view) .node[data-alt]:not(.is-current) .node__btn::before {
+  background: var(--uni); border-color: var(--ivory); box-shadow: 0 0 0 2.5px var(--ink), 0 0 12px 2px rgb(232 121 249 / 0.45);
+}
+:root:root:not(.is-list-view) .node[data-alt] .node__btn:hover::before { transform: rotate(45deg) scale(1.3); }
+.frise .thread__branch .thread__rim { stroke: var(--uni); stroke-dasharray: 6 4; }
+:root:not(.is-list-view) .node__btn:focus-visible { outline-offset: 2px; }
+/* mode Personnages : seul le point s'atténue ; titre et focus gardent tout leur contraste */
+:root:not(.is-list-view) .node.is-dimmed { opacity: 1; }
+:root:not(.is-list-view) .node.is-dimmed .node__btn::before { opacity: 0.32; }
+:root:not(.is-list-view) .node.is-dimmed .node__btn:hover::before,
+:root:not(.is-list-view) .node.is-dimmed .node__btn:focus-visible::before { opacity: 1; }
+
+/* titres : masqués visuellement (lus par les lecteurs d'écran), visibles près de l'index (N2/N3),
+   au survol et au focus */
+:root:not(.is-list-view) .node__title, :root:not(.is-list-view) .node__meta {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+:root:not(.is-list-view) .node.is-near .node__title,
+:root:not(.is-list-view) .node:not(.is-current) .node__btn:hover .node__title,
+:root:not(.is-list-view) .node:not(.is-current) .node__btn:focus-visible .node__title {
+  width: auto; height: auto; overflow: visible; clip-path: none; z-index: 1; pointer-events: none;
+  top: calc(50% + var(--ly, 0px)); left: calc(27px + var(--dot) / 2); transform: translateY(-50%); /* à 5 px du point */
+  font: 600 0.78rem/1.2 var(--f-title); font-stretch: 75%; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--ivory); background: rgb(6 6 8 / 0.9); padding: 0.22rem 0.5rem 0.2rem; border-radius: 2px;
+  border-left: 0.5px solid rgb(244 242 238 / 0.45);
+  white-space: normal; width: max-content; max-width: 10.5rem; text-wrap: balance;
+}
+:root:not(.is-list-view) .node[data-side="l"] .node__title { left: auto; right: calc(27px + var(--dot) / 2); border-left: 0; border-right: 0.5px solid rgb(244 242 238 / 0.45); text-align: right; }
+:root:not(.is-list-view) .node__btn:hover .node__title, :root:not(.is-list-view) .node__btn:focus-visible .node__title { background: rgb(6 6 8 / 0.96); }
+
+/* -- moyeu : l'œuvre sous l'index ------------------------------------------------------------ */
+.astro-hub {
+  position: absolute; left: var(--cx); top: var(--cy); width: var(--hubw); transform: translate(-50%, -50%);
+  z-index: 5; pointer-events: none; text-align: center; color: var(--ivory);
+}
+.astro-hub p { margin: 0; }
+.astro-hub__k {
+  font: 600 0.75rem/1.35 var(--f-title); font-stretch: 75%; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--mist); margin-bottom: 0.45rem !important;
+}
+.astro-hub__t {
+  font: 600 1.55rem/1.06 var(--f-title); font-stretch: 64%; letter-spacing: 0.05em; text-transform: uppercase;
+  text-wrap: balance; overflow-wrap: normal; hyphens: manual; /* jamais de mot coupé : la taille s'ajuste (fitHub) */
+}
+.astro-hub__t--saga { font-size: 1.7rem; }
+.astro-hub__t--phase { font-size: 2.6rem; letter-spacing: 0.08em; font-weight: 500; }
+.astro-hub__t--yr { font-size: 2.6rem; letter-spacing: 0.06em; font-weight: 500; font-variant-numeric: tabular-nums; } /* grand écran : l'aperçu de droite donne le titre */
+.astro-hub__p { font: 400 0.98rem/1.4 var(--f-text); color: var(--mist); margin-top: 0.5rem !important; }
+.astro-hub__under {
+  margin-top: 0.8rem !important; padding-top: 0.55rem; border-top: 0.5px solid rgb(255 90 95 / 0.55);
+  font: italic 400 0.92rem/1.35 var(--f-text); color: var(--mist);
+}
+.astro-hub__vo { font: italic 400 1rem/1.3 var(--f-text); color: var(--mist); margin-top: 0.3rem !important; }
+.astro-hub__facts { display: grid; grid-template-columns: auto 1fr; gap: 0.2rem 0.75rem; margin: 0.75rem 0 0; text-align: left; }
+.astro-hub__facts dt {
+  font: 600 0.75rem/1.55 var(--f-title); font-stretch: 75%; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mist);
+}
+.astro-hub__facts dd { margin: 0; font: 400 0.95rem/1.4 var(--f-text); color: var(--ivory); }
+.astro-hub__note { font: italic 400 0.9rem/1.35 var(--f-text); color: var(--ivory); margin-top: 0.45rem !important; }
+.astro-hub__hint {
+  margin-top: 0.7rem !important; font: 500 0.75rem/1.3 var(--f-title); font-stretch: 75%; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--mist);
+}
+/* N3 (tablette) : grande carte au centre ; un seul filet doré, en tête */
+.astro-hub[data-level="3"] {
+  width: min(21.5rem, calc(var(--hubw) + 110px)); padding: 1.05rem 1.2rem 1.1rem; text-align: left;
+  background: rgb(6 6 8 / 0.95); border-top: 0.5px solid var(--gold); border-radius: 0;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.55); pointer-events: auto; cursor: pointer;
+}
+.astro-hub[data-level="3"] .astro-hub__t { font-size: 1.75rem; }
+
+
+/* -- libellés des secteurs -------------------------------------------------------------------- */
+.astro-ph {
+  position: absolute; left: 0; top: 0; white-space: nowrap;
+  transform: translate(var(--px), var(--py)) translate(-50%, -50%) rotate(var(--pr));
+  font: 600 0.75rem/1 var(--f-title); font-stretch: 75%; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--mist); background: rgb(6 6 8 / 0.9); padding: 0.24rem 0.45rem 0.2rem; border-radius: 2px;
+  transition: opacity 0.2s ease;
+}
+.astro-ph__n { color: var(--mist); letter-spacing: 0.1em; display: none; }
+.frise[data-zoom="phases"] .astro-ph__n, [data-mode="phases"] .astro-ph__n { display: inline; }
+.frise[data-zoom="phases"] .astro-ph, [data-mode="phases"] .frise:not([data-zoom="sagas"]) .astro-ph { font-size: 0.8rem; color: var(--ivory); }
+.frise[data-zoom="sagas"] .astro-ph--phase { opacity: 0; }
+.astro-ph--saga { color: var(--ivory); letter-spacing: 0.16em; }
+
+/* -- panneau Cadran (grand écran) : titre et une ligne ----------------------------------------- */
+.astro-side {
+  position: absolute; z-index: 3; width: clamp(11.5rem, calc(var(--cx) - var(--R) - 150px), 16.5rem); pointer-events: none;
+  padding: 0.85rem 1rem 0.95rem; background: rgb(6 6 8 / 0.84); border-top: 0.5px solid rgb(244 242 238 / 0.25);
+  color: var(--mist); font: 400 0.95rem/1.45 var(--f-text);
+}
+.astro-side p { margin: 0; }
+.astro-side p + p { margin-top: 0.45rem; }
+.astro-cart { left: 24px; top: 18px; }
+.astro-side__k { font: 600 0.75rem/1.4 var(--f-title); font-stretch: 75%; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mist); }
+.astro-side__t { font: 600 1.6rem/1.05 var(--f-title); font-stretch: 64%; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ivory); margin-top: 0.2rem !important; }
+.frise:not([data-layout="wide"]) .astro-side { display: none; }
+
+/* -- légende repliable (grand écran, hors de la frise) ---------------------------------------- */
+.astro-legend {
+  position: absolute; z-index: 6; right: 24px; top: calc(var(--astro-top, 0px) + var(--fh, 600px) - 18px);
+  transform: translateY(-100%); width: clamp(11.5rem, calc(var(--cx) - var(--R) - 80px), 17rem);
+  background: rgb(6 6 8 / 0.88); border-top: 0.5px solid rgb(244 242 238 / 0.25);
+  color: var(--mist); font: 400 0.92rem/1.4 var(--f-text);
+}
+.astro-legend__sum {
+  display: flex; align-items: center; gap: 0.6rem; min-height: 44px; padding: 0 1rem; cursor: pointer; list-style: none;
+  font: 600 0.8rem/1 var(--f-title); font-stretch: 75%; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ivory);
+}
+.astro-legend__sum::-webkit-details-marker { display: none; }
+.astro-legend__sum::after { content: "+"; margin-left: auto; font-size: 1rem; letter-spacing: 0; color: var(--mist); }
+.astro-legend[open] .astro-legend__sum::after { content: "−"; }
+.astro-legend__sum:hover { color: #fff; }
+.astro-legend__list { list-style: none; margin: 0; padding: 0.1rem 1rem 0.9rem; display: grid; gap: 0.3rem; }
+.astro-legend__list li { display: grid; grid-template-columns: 1.4rem 1fr; align-items: center; gap: 0.5rem; }
+.frise:not([data-layout="wide"]) ~ .astro-legend, .is-list-view .astro-legend { display: none; }
+.astro-sw { position: relative; justify-self: center; width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--ivory); background: var(--ivory); box-sizing: border-box; }
+.astro-sw--series { background: transparent; }
+.astro-sw--upcoming { background: transparent; border: 1.6px dashed var(--ivory); width: 14px; height: 14px; }
+.astro-sw--branch { width: 22px; height: 0; border: 0; border-top: 2px dashed var(--uni); border-radius: 0; background: none; }
+.astro-sw--prov { background: transparent; border: 1.2px dotted var(--ivory); width: 16px; height: 16px; }
+.astro-sw--arc { width: 20px; height: 10px; border: 0.9px solid var(--gold); border-bottom: 0; border-radius: 10px 10px 0 0; background: none; }
+.astro-sw--rings { width: 18px; height: 18px; background: none; border: 0.8px solid var(--ivory); box-shadow: inset 0 0 0 4px rgb(7 9 16), inset 0 0 0 4.8px var(--ivory); }
+.astro-sw--num {
+  width: auto; height: auto; border: 0; border-radius: 0; background: none;
+  font: 600 0.75rem/1 var(--f-title); font-stretch: 75%; letter-spacing: 0.1em; color: var(--ivory);
+}
+.astro-sw--index { width: 0; height: 0; border: 7px solid transparent; border-top: 11px solid var(--gold); border-bottom: 0; border-radius: 0; background: none; }
+
+/* -- boutons de rotation (hors de la frise, superposés au cadran) ------------------------------- */
+.astro-nav {
+  position: absolute; left: 0; right: 0; z-index: 6; top: calc(var(--astro-top, 0px) + var(--cy, 300px) - 22px);
+  display: flex; justify-content: space-between; padding: 0 24px; pointer-events: none;
+}
+.astro-nav__btn {
+  pointer-events: auto; display: inline-flex; align-items: center; gap: 0.6rem; min-height: 44px; min-width: 44px;
+  padding: 0 1.15rem; border-radius: 999px; cursor: pointer; color: var(--ivory); background: rgb(6 6 8 / 0.9);
+  border: 0.5px solid rgb(244 242 238 / 0.45);
+  font: 600 0.84rem/1 var(--f-title); font-stretch: 75%; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.astro-nav__btn:hover { background: #16161B; border-color: rgb(244 242 238 / 0.85); }
+.astro-nav__g { color: var(--ivory); font-size: 0.8rem; letter-spacing: 0; }
+.astro-nav__btn[aria-disabled="true"] { opacity: 0.4; cursor: default; }
+.astro-nav__count { display: none; }
+/* grand écran : les deux boutons encadrent le repère de l'index, au-dessus du cadran */
+.frise[data-layout="wide"] + .astro-nav {
+  top: calc(var(--astro-top, 0px) + 6px); display: grid; grid-template-columns: 1fr 340px 1fr; padding: 0;
+}
+.frise[data-layout="wide"] + .astro-nav .astro-nav__btn:first-child { grid-column: 1; justify-self: end; }
+.frise[data-layout="wide"] + .astro-nav .astro-nav__btn:last-child { grid-column: 3; justify-self: start; }
+.frise[data-layout="tablet"] + .astro-nav { top: calc(var(--astro-top, 0px) + var(--fh, 600px) - 66px); }
+/* vue liste : plus de cadran, plus de boutons de rotation (spécificité supérieure aux dispositions) */
+:root.is-list-view .astro-nav, .is-list-view .frise[data-layout] + .astro-nav { display: none; }
+
+/* -- tablette ---------------------------------------------------------------------------------- */
+@media (min-width: 768px) and (max-width: 1099px) {
+  .c-brand { flex-direction: row; align-items: baseline; gap: 0.25rem 0.75rem; }
+}
+
+/* -- mobile : arc supérieur d'un cadran agrandi, carte au-dessus -------------------------------- */
+@media (max-width: 767px) {
+  .c-header { position: relative; padding: 0.55rem 16px 0.45rem; gap: 0.2rem 0.5rem; }
+  .c-brand { flex-direction: row; flex-wrap: nowrap; align-items: baseline; gap: 0.6rem; width: 100%; }
+  .c-brand a { font-size: 1.22rem; letter-spacing: 0.2em; }
+  .c-brand__tag { font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .c-modes ul { justify-content: flex-start; gap: 0.15rem; }
+  .c-modes a { padding: 0 0.55rem; font-size: 0.8rem; letter-spacing: 0.13em; }
+  .c-modes li:first-child a { padding-left: 0; }
+  .c-tools {
+    flex-wrap: nowrap; overflow-x: auto; gap: 0.4rem; width: calc(100% + 32px); margin: 0 -16px; padding: 0.15rem 16px 0.25rem;
+    scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent);
+  }
+  /* au bout du défilement (ou sans défilement), plus de fondu : le dernier contrôle reste net */
+  .c-tools.is-end { -webkit-mask-image: none; mask-image: none; }
+  .c-tools::-webkit-scrollbar { display: none; }
+  .c-tools > * { flex: 0 0 auto; }
+  .c-tools .segmented { width: auto; }
+  .c-tools .segmented button { flex: none; padding: 0.5rem 0.85rem; }
+  .c-tools .button, .c-settings summary { padding: 0 0.85rem; }
+  .c-settings { position: static; }
+  .c-settings__body { left: 16px; right: 16px; width: auto; top: calc(100% + 0.25rem); }
+  .c-field { padding: 0.5rem 16px 0; }
+  .c-field select { min-width: 0; flex: 1; }
+  .c-zoom { gap: 0.35rem; padding: 0.5rem 16px; flex-wrap: nowrap; }
+  .c-zoom__label { min-width: 0; margin: 0 0.25rem; font-size: 0.75rem; letter-spacing: 0.1em; white-space: nowrap; }
+  .c-zoom .button { padding: 0.5rem 0.8rem; }
+  .c-help, .c-footer { margin-left: 16px; margin-right: 16px; }
+  .c-footer { padding-left: 0; padding-right: 0; }
+
+  /* carte de l'œuvre courante : jamais sur le repère (bas ≤ index − 84 px) */
+  .frise[data-layout="mobile"] .astro-hub {
+    left: 16px; right: 16px; top: 12px; width: auto; transform: none; text-align: left;
+    max-height: calc(var(--yidx) - 96px); overflow: hidden; pointer-events: auto; cursor: pointer;
+    padding: 0.8rem 1rem 0.85rem; background: rgb(6 6 8 / 0.9); border-top: 0.5px solid var(--gold);
+  }
+  .frise[data-layout="mobile"] .astro-hub[data-level="3"] { width: auto; box-shadow: none; }
+  .frise[data-layout="mobile"] .astro-hub__t { font-size: 1.6rem; }
+  .frise[data-layout="mobile"] .astro-hub__hint { display: none; }
+  .frise[data-layout="mobile"] .astro-hub__vo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .frise[data-layout="mobile"] .astro-hub__facts { grid-template-columns: 4.4rem 1fr; gap: 0.1rem 0.6rem; margin-top: 0.55rem; }
+  .frise[data-layout="mobile"] .astro-hub__note { margin-top: 0.4rem !important; }
+  /* N2 : les voisines de l'index, à l'horizontale */
+  .astro-hub__around {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin-top: 0.55rem !important; padding-top: 0.45rem;
+    border-top: 0.5px solid rgb(244 242 238 / 0.2); font: italic 400 0.95rem/1.3 var(--f-text); color: var(--mist);
+  }
+  .astro-hub__around > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .astro-hub__next { text-align: right; }
+  /* carte trop haute pour l'écran : on resserre, puis on signale la suite */
+  .frise[data-layout="mobile"] .astro-hub.is-tight { padding-top: 0.65rem; padding-bottom: 0.7rem; }
+  .frise[data-layout="mobile"] .astro-hub.is-tight .astro-hub__t { font-size: 1.32rem; }
+  .frise[data-layout="mobile"] .astro-hub.is-tight .astro-hub__k { margin-bottom: 0.25rem !important; }
+  .frise[data-layout="mobile"] .astro-hub.is-tight .astro-hub__vo { display: none; }
+  .frise[data-layout="mobile"] .astro-hub.is-tight .astro-hub__p { margin-top: 0.2rem !important; }
+  .frise[data-layout="mobile"] .astro-hub.is-tight .astro-hub__around { margin-top: 0.35rem !important; padding-top: 0.3rem; }
+  .frise[data-layout="mobile"] .astro-hub.is-tight .astro-hub__facts { margin-top: 0.35rem; }
+  .frise[data-layout="mobile"] .astro-hub.is-tight .astro-hub__around > span { -webkit-line-clamp: 1; }
+  .frise[data-layout="mobile"] .astro-hub.is-clipped::after {
+    content: "Suite dans les Archives\00A0: toucher la carte"; position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 1.3rem 1rem 0.55rem; background: linear-gradient(180deg, rgb(6 6 8 / 0), rgb(7 9 16) 55%);
+    font: italic 400 0.9rem/1.2 var(--f-text); color: var(--mist);
+  }
+
+  /* l'affiche d'abord (shared/js/affiche.js), à gauche du titre ; sa hauteur suit la place laissée
+     au-dessus du repère (carte haute au plus de --yidx − 96 px, marges ≈ 28 px) */
+  .frise[data-layout="mobile"] .astro-hub { --aff-h: clamp(96px, calc(var(--yidx) - 124px), 228px); }
+  .frise[data-layout="mobile"] .astro-aff { display: grid; }
+  .frise[data-layout="mobile"] .astro-aff__slot { display: block; min-width: 0; }
+  .frise[data-layout="mobile"] .astro-aff__slot--cur { width: calc(var(--aff-h) * 2 / 3); }
+  .frise[data-layout="mobile"] .astro-aff--cote { grid-template-columns: auto minmax(0, 1fr); column-gap: 0.9rem; align-items: start; }
+  .frise[data-layout="mobile"] .astro-aff__txt { min-width: 0; padding-top: 0.15rem; }
+  .frise[data-layout="mobile"] .astro-aff--cote:not(.astro-aff--n3) .astro-aff__txt { align-self: end; padding: 0 0 0.2rem; } /* légende au pied de l'affiche */
+  .frise[data-layout="mobile"] .astro-aff--cote .astro-hub__t { font-size: 1.45rem; }
+  /* N3 : affiche plus petite, les faits dessous sur toute la largeur */
+  .frise[data-layout="mobile"] .astro-aff--n3 .astro-aff__slot--cur { width: calc(var(--aff-h) * 0.52); }
+  .frise[data-layout="mobile"] .astro-aff--n3 .astro-hub__t { font-size: 1.3rem; }
+  .frise[data-layout="mobile"] .astro-aff--n3 .astro-hub__vo { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+  .frise[data-layout="mobile"] .astro-hub.is-tight .astro-aff--n3 .astro-hub__vo { display: none; }
+
+  .frise[data-layout="mobile"] + .astro-nav { top: calc(var(--astro-top, 0px) + var(--fh, 600px) - 70px); padding: 0 14px; align-items: center; }
+  .frise[data-layout="mobile"] + .astro-nav .astro-nav__btn { width: 56px; height: 56px; padding: 0; justify-content: center; }
+  .frise[data-layout="mobile"] + .astro-nav .astro-nav__g { font-size: 1.1rem; }
+  .frise[data-layout="mobile"] + .astro-nav .astro-nav__count {
+    display: grid; justify-items: center; gap: 0.15rem; margin: 0; text-align: center; color: var(--mist);
+  }
+  /* N3 : le rang figure dans la carte ; l'arc descend vers les boutons */
+  .frise[data-layout="mobile"][data-level="3"] + .astro-nav .astro-nav__count,
+  .frise[data-layout="mobile"].is-compact + .astro-nav .astro-nav__count { visibility: hidden; }
+  .astro-nav__n { font: 600 2.1rem/1 var(--f-title); font-stretch: 64%; letter-spacing: 0.04em; color: var(--ivory); }
+  .astro-nav__o { font: 600 0.75rem/1.2 var(--f-title); font-stretch: 75%; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mist); }
+  .frise[data-layout="mobile"] .astro-num { font-size: 12.5px; }
+  .frise[data-layout="mobile"] + .astro-nav .astro-nav__txt {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+}
+
+/* -- vue liste : un tableau d'éphémérides ----------------------------------------------------- */
+.is-list-view .frise { height: auto !important; overflow: visible; }
+.is-list-view .oeuvres { counter-reset: rang; gap: 0.5rem 1.25rem; max-width: 76rem; margin: 0 auto; }
+.is-list-view .node:not([hidden]) { counter-increment: rang; }
+.is-list-view .node__btn {
+  grid-template-columns: 2.4rem 1fr; column-gap: 0.7rem; align-items: baseline; padding: 0.75rem 0.9rem 0.8rem;
+  background: rgb(6 6 8 / 0.86); border: 0; border-top: 0.5px solid rgb(244 242 238 / 0.3); border-radius: 0;
+}
+.is-list-view .node__btn::before {
+  content: counter(rang, decimal-leading-zero); grid-row: 1 / span 2; align-self: start;
+  font: 600 1.2rem/1 var(--f-title); font-stretch: 66%; letter-spacing: 0.04em; color: var(--mist);
+}
+.is-list-view .node__title { grid-column: 2; font: 600 1rem/1.25 var(--f-title); font-stretch: 75%; letter-spacing: 0.06em; text-transform: uppercase; }
+.is-list-view .node__meta { grid-column: 2; font: italic 400 0.92rem/1.35 var(--f-text); color: #B9B9C2; }
+.is-list-view .node[data-status="upcoming"] .node__btn, .is-list-view .node[data-status="tba"] .node__btn { border-top-style: dashed; }
+.is-list-view .node.is-highlighted .node__btn { box-shadow: inset 2px 0 0 var(--gold); }
+.is-list-view .node.is-highlighted .node__btn::before { color: var(--gold); }
+/* œuvres hors du personnage : en retrait mais lisibles (≥ 4,5:1), au lieu de l'opacité commune */
+.is-list-view .node.is-dimmed { opacity: 1; }
+.is-list-view .node.is-dimmed .node__btn { border-top-color: rgb(244 242 238 / 0.14); }
+.is-list-view .node.is-dimmed .node__title { color: #A8A8B2; }
+.is-list-view .node.is-dimmed .node__meta { color: #9A9AA4; }
+.is-list-view .node.is-dimmed .node__btn::before { color: #93939D; }
+
+/* -- vue Archives (variables seulement) -------------------------------------------------------- */
+.archives {
+  --arch-font-display: 'Archivo', system-ui, sans-serif;
+  --arch-font-text: 'Newsreader', Georgia, serif;
+  --arch-accent: #FF5A5F;
+  --arch-selected-bg: #E3262E;
+  --arch-selected-fg: #FFFFFF;
+  --arch-panel: rgb(7 7 10 / 0.9);
+}
+
+/* -- contrastes forcés -------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  :root:not(.is-list-view) .node__btn::before { forced-color-adjust: none; background: CanvasText !important; border-color: CanvasText !important; box-shadow: none !important; }
+  :root:not(.is-list-view) .node.is-current .node__btn::before { background: Highlight !important; border-color: Highlight !important; }
+  .astro-sep-gap { display: none; }
+  :root:not(.is-list-view) .node[data-alt] .node__uni { forced-color-adjust: none; background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .astro-hair, .astro-sep, .astro-tick, .astro-rule, .astro-window, .astro-divider, .astro-arc { stroke: CanvasText; opacity: 1; }
+  .astro-band { fill: none; stroke: CanvasText; }
+  .astro-pointer { fill: CanvasText; }
+  .astro-disc, .astro-ring { fill: Canvas; }
+  .astro-saga, .astro-num { fill: CanvasText; stroke: Canvas; opacity: 1; }
+  .astro-hub, .astro-side, .astro-legend, .astro-ph, .astro-nav__btn { border: 1px solid CanvasText; }
+  .frise .thread__core, .frise .thread__rim { stroke: CanvasText; }
+}
+
+/* -- code couleur (variables : data/couleurs.css) --------------------------------------------------
+   Points des œuvres et secteurs dans la couleur de leur phase, anneaux et noms gravés dans celle de
+   leur saga ; le rouge reste réservé à l'index et à l'œuvre courante. */
+.astro-band[data-phase] { fill: color-mix(in srgb, var(--phase-color) 9%, transparent); stroke: color-mix(in srgb, var(--phase-color) 65%, transparent); }
+.frise[data-zoom="phases"] .astro-band[data-phase], [data-mode="phases"] .frise:not([data-zoom="sagas"]) .astro-band[data-phase] {
+  fill: color-mix(in srgb, var(--phase-color) 20%, transparent); stroke: var(--phase-color); }
+.astro-band--saga[data-saga] { fill: color-mix(in srgb, var(--saga-color) 8%, transparent); stroke: color-mix(in srgb, var(--saga-color) 70%, transparent); }
+.astro-ring[data-saga] { fill: color-mix(in srgb, var(--saga-color) 6%, transparent); } /* chaque saga teinte son anneau */
+.frise[data-zoom="sagas"] .astro-ring[data-saga] { fill: color-mix(in srgb, var(--saga-color) 10%, transparent); }
+.frise[data-zoom="sagas"] .astro-rete.no-rings .astro-band[data-saga] { fill: color-mix(in srgb, var(--saga-color) 14%, transparent); stroke: var(--saga-color); }
+.astro-saga[data-saga] { fill: var(--saga-color); }
+.astro-ph[data-phase] .astro-ph__name { color: var(--phase-color); }
+@media (forced-colors: active) {
+  .astro-band[data-phase], .astro-ring[data-saga] { fill: transparent; stroke: CanvasText; }
+  .astro-saga[data-saga] { fill: CanvasText; }
+}
+.is-list-view .node:not(.is-highlighted) .node__btn::before { color: var(--phase-color, var(--mist)); }
+.astro-hub[data-phase] .astro-hub__k:first-child { color: var(--phase-color); }
+.node[data-kind="phase"] { --dot: 23px; }
+.frise[data-zoom="sagas"] .node[data-kind="phase"] { --dot: 17px; }
+
+/* -- colonnes autour du cadran (grand écran) : le cadran reste l'élément central ------------------
+   Gauche : panneau Cadran, phases (mode Phases), légende. Droite : personnage (mode Personnages) et
+   aperçu de la fiche de l'œuvre sous l'index. Sur mobile et tablette, elles s'empilent avant la frise. */
+.astro-rail { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-content: start; } /* minmax(0) : une rangée qui défile (puces des phases) n'élargit jamais la page */
+.astro-rail:empty { display: none; }
+.astro-rail .astro-side { position: static; width: auto; }
+.astro-rail .astro-legend { position: static; transform: none; width: auto; }
+@media (min-width: 1100px) {
+  :root:not(.is-list-view) #contenu { --rail-w: var(--side, 18rem); } /* colonnes 1 · 2 · 1 : même largeur à gauche et à droite */
+  :root:not(.is-list-view) #contenu > .astro-rail {
+    position: absolute; z-index: 6; top: calc(var(--astro-top, 0px) + 18px); width: var(--rail-w);
+    max-height: calc(var(--fh, 600px) - 36px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+  }
+  :root:not(.is-list-view) #contenu > .astro-rail--left { left: 24px; }
+  :root:not(.is-list-view) #contenu > .astro-rail--right { right: 24px; }
+  :root:not(.is-list-view) .astro-rail .c-phasecards, :root:not(.is-list-view) .astro-rail .c-persos { padding: 0; }
+  /* phases dans la colonne de gauche : une liste compacte sous « Ordre de sortie / de l'histoire » */
+  :root:not(.is-list-view) .astro-rail .c-phasecards__list { grid-template-columns: 1fr; grid-auto-flow: row; gap: 4px; }
+  :root:not(.is-list-view) .astro-rail .c-phasecard {
+    grid-template-columns: 2.1rem auto 1fr; align-items: baseline; min-height: 40px; padding: 0.35rem 0.7rem;
+    background: rgb(6 6 8 / 0.84); border-top-width: 0; border-left: 3px solid var(--phase-color, var(--mist)); border-radius: 0;
+  }
+  :root:not(.is-list-view) .astro-rail .c-phasecard[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--red); }
+  :root:not(.is-list-view) .astro-rail .c-phasecard__n { grid-row: auto; font-family: var(--f-title); font-stretch: 70%; font-size: 1.2rem; }
+  :root:not(.is-list-view) .astro-rail .c-phasecard__c { text-align: right; }
+  :root:not(.is-list-view) .astro-rail .c-phasecard--all .c-phasecard__y { grid-column: 2 / -1; }
+
+  /* mode Personnages : la fiche dans une vraie colonne à droite, le cadran à gauche */
+  :root[data-mode="personnages"]:not(.is-list-view) #contenu { display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--side, 18rem) + 24px); column-gap: 16px; align-items: start; }
+  :root[data-mode="personnages"]:not(.is-list-view) #contenu > * { grid-column: 1 / -1; }
+  :root[data-mode="personnages"]:not(.is-list-view) #contenu > #frise { grid-column: 1; grid-row: 1; }
+  :root[data-mode="personnages"]:not(.is-list-view) #contenu > .astro-rail--right {
+    position: relative; top: auto; right: auto; grid-column: 2; grid-row: 1; width: auto; z-index: 6;
+    max-height: none; overflow: visible; padding-right: 24px; margin-top: 18px; /* hauteur naturelle : le bas de page se décale d'autant */
+  }
+  :root[data-mode="personnages"] .astro-rail .c-persos { grid-template-columns: 1fr; }
+  :root[data-mode="personnages"] .astro-rail .c-persos > * { grid-column: 1; grid-row: auto; }
+}
+
+/* aperçu de la fiche (Archives en miniature) */
+.c-preview { display: grid; gap: 0.5rem; padding: 0.9rem 1rem 1rem; background: rgb(6 6 8 / 0.9); border-top: 3px solid var(--phase-color, var(--red)); color: var(--ivory); font: 400 0.95rem/1.45 var(--f-text); }
+.c-preview[hidden] { display: none; }
+.c-preview p { margin: 0; }
+.c-preview__k { font: 600 0.72rem/1.3 var(--f-title); font-stretch: 75%; letter-spacing: 0.16em; text-transform: uppercase; color: var(--red-text); }
+.c-preview__top { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); gap: 0.75rem; align-items: start; }
+.c-preview__poster { width: 100%; height: auto; aspect-ratio: 2 / 3; object-fit: cover; border: 1px solid #2C2C35; }
+.c-preview__poster--ph { display: grid; align-content: space-between; padding: 0.4rem; background: radial-gradient(90% 70% at 30% 20%, color-mix(in srgb, var(--phase-color, #888) 30%, #101014), #070709 75%); }
+.c-preview__roman { font: 700 1.3rem/1 var(--f-title); color: var(--phase-color, var(--ivory)); }
+.c-preview__ptitle { font: 600 0.62rem/1.15 var(--f-title); font-stretch: 75%; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ivory); overflow-wrap: break-word; }
+.c-preview__kind { font: 600 0.72rem/1.3 var(--f-title); font-stretch: 75%; letter-spacing: 0.14em; text-transform: uppercase; color: var(--phase-color, var(--mist)); }
+.c-preview__title { margin: 0.1rem 0 0; font: 650 1.15rem/1.1 var(--f-title); font-stretch: 66%; letter-spacing: 0.04em; text-transform: uppercase; overflow-wrap: normal; hyphens: manual; } /* jamais de mot coupé */
+.c-preview__top { grid-template-columns: 3.6rem minmax(0, 1fr); }
+.c-preview__vo { font-style: italic; color: var(--mist); font-size: 0.9rem; }
+.c-preview__facts { display: grid; grid-template-columns: 1fr; gap: 0; margin: 0; font-size: 0.9rem; } /* intitulé au-dessus de la valeur : lisible dans une colonne étroite */
+.c-preview__facts dd + dt { margin-top: 0.3rem; }
+.c-preview__facts dt { color: var(--mist); font: 600 0.68rem/1.9 var(--f-title); font-stretch: 75%; letter-spacing: 0.12em; text-transform: uppercase; }
+.c-preview__facts dd { margin: 0; }
+.c-preview__status { color: var(--red-text); font-size: 0.875rem; }
+.c-preview__text p + p { margin-top: 0.25rem; }
+.c-preview__src { font-size: 0.78rem; color: #A8A8B2; }
+.c-preview__open { justify-self: start; }
+#contenu:not(.astro-wide) .c-preview, #contenu:not(.astro-wide) .astro-legend, #contenu:not(.astro-wide) .astro-side, .is-list-view .c-preview { display: none !important; }
+@media (forced-colors: active) { .c-preview, .astro-rail .c-phasecard { border: 1px solid CanvasText; } }
+
+/* boutons de rotation (grand écran) : de part et d'autre du cadran, à mi-hauteur, entre le cadran et les
+   colonnes ; ronds, l'intitulé apparaît au survol et au focus (et reste le nom accessible) */
+@media (min-width: 1100px) {
+  .frise[data-layout="wide"] + .astro-nav {
+    display: block; top: calc(var(--astro-top, 0px) + var(--cy, 300px) - 26px); left: 0; right: 0; height: 52px; padding: 0;
+  }
+  .frise[data-layout="wide"] + .astro-nav .astro-nav__btn {
+    position: absolute; top: 0; width: 52px; height: 52px; min-width: 52px; padding: 0; justify-content: center; border-radius: 50%; font-size: 1.05rem;
+  }
+  .frise[data-layout="wide"] + .astro-nav .astro-nav__btn--prev { left: calc(var(--nav-l) - 26px); }
+  .frise[data-layout="wide"] + .astro-nav .astro-nav__btn--next { left: calc(var(--nav-r) - 26px); }
+  .frise[data-layout="wide"] + .astro-nav .astro-nav__txt {
+    position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none;
+    padding: 0.2rem 0.55rem; font: 600 0.72rem/1.3 var(--f-title); font-stretch: 75%; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ivory); background: rgb(6 6 8 / 0.94); border-top: 1px solid var(--red);
+    clip-path: inset(50%); /* masqué visuellement, toujours lu */
+  }
+  .frise[data-layout="wide"] + .astro-nav .astro-nav__btn:hover .astro-nav__txt,
+  .frise[data-layout="wide"] + .astro-nav .astro-nav__btn:focus-visible .astro-nav__txt { clip-path: none; }
+  .frise[data-layout="wide"] + .astro-nav .astro-nav__count { display: none; }
+  /* aide « Comment lire la frise ? » rangée dans la colonne de gauche */
+  :root:not(.is-list-view) .astro-rail .c-help { margin: 0; padding: 0 1rem 0.2rem; background: rgb(6 6 8 / 0.88); border-top: 0.5px solid rgb(244 242 238 / 0.25); font-size: 0.9rem; }
+  :root:not(.is-list-view) .astro-rail .c-help summary { font-size: 0.8rem; }
+  :root:not(.is-list-view) .astro-rail .c-help ul { padding-left: 1.1rem; }
+}
+
+/* en-tête sur une ligne (grand écran) : nom et onglets plus serrés */
+@media (min-width: 1100px) {
+  .c-header { column-gap: 1rem; }
+  .c-brand a { font-size: 1.22rem; letter-spacing: 0.14em; padding: 0.26rem 0.38rem 0.2rem 0.5rem; }
+  .c-brand__tag { font-size: 0.78rem; }
+  .c-modes a { padding: 0 0.5rem; }
+}
+@media (min-width: 1100px) and (max-width: 1279px) {
+  .c-header { column-gap: 0.6rem; }
+  .c-modes a { padding: 0 0.35rem; }
+  .c-brand a { font-size: 1.1rem; letter-spacing: 0.1em; }
+  .c-modes a { letter-spacing: 0.08em; }
+}
+
+/* fil : cœur noir, liseré rouge, et un ruban dans la couleur de la phase (sagas : familles or / bleu)
+   tout autour ; un changement de couleur = un changement de phase. Masqué pendant une réorganisation. */
+.astro-threadphase { fill: none; stroke: var(--phase-color, var(--mist)); stroke-width: 8; stroke-linecap: butt; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.astro-threadphases { transition: opacity 0.2s ease; }
+.frise.is-morphing .astro-threadphases { opacity: 0; }
+[data-mode="personnages"] .frise .astro-threadphases { opacity: 0.55; }
+@media (forced-colors: active) { .astro-threadphase { stroke: CanvasText; stroke-width: 6; } }
+/* survol d'un point : il grossit (l'aperçu de droite montre sa fiche) */
+:root:not(.is-list-view) .node__btn:hover::before { transform: scale(1.3); box-shadow: 0 0 0 2.5px var(--ink), 0 0 0 4px rgb(244 242 238 / 0.65); }
+.is-reduced-motion .node__btn::before { transition: none; }
+:root:not(.is-list-view) .node__btn::before { transition-property: width, height, margin, background-color, transform; transition-duration: 0.18s; }
+
+/* -- téléphone, interface « appli » (shared/css/app.css) : onglets du bas dans la typographie du cadran */
+@media (max-width: 767px), (max-width: 1099px) and (max-height: 520px) {
+  :root[data-app] .c-modes :is(a, button) { font: 600 0.7rem/1.1 var(--f-title); font-stretch: 75%; letter-spacing: 0.1em; text-transform: uppercase; }
+  :root[data-app] .c-appbtn { font-family: var(--f-title); font-stretch: 75%; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.85rem; }
+  :root[data-app] .m-chip { font-size: 0.95rem; }
+  :root[data-app] .m-sheet__h { font-family: var(--f-title); font-stretch: 75%; }
+}
+
+/* -- mode Phases : au bout d'une phase dépliée, ◀ ▶ mènent à la phase voisine (cerclés de sa couleur) -- */
+.astro-nav__btn.is-phase[data-phase] { border-color: var(--phase-color); box-shadow: inset 0 0 0 1px var(--phase-color); }
+.astro-nav__btn.is-phase[data-phase] .astro-nav__g { color: var(--phase-color); }
+@media (forced-colors: active) { .astro-nav__btn.is-phase[data-phase] { border: 2px solid CanvasText; box-shadow: none; } }
+
+/* -- mode Personnages, grand écran : cadre du personnage au-dessus du cadran (en-tête de la fiche :
+   médaillon, nom, œuvres, alias) ; le reste de la fiche est dans la colonne de gauche ---------------- */
+.astro-charframe { display: none; }
+@media (min-width: 1100px) {
+  :root[data-mode="personnages"]:not(.is-list-view) #contenu > .astro-charframe:not([hidden]) {
+    display: block; position: absolute; z-index: 6; top: calc(var(--astro-top, 0px) + 6px); left: var(--cx, 50%);
+    transform: translateX(-50%); width: max-content; max-width: min(40rem, calc(100% - 2 * var(--side, 18rem) - 80px));
+    padding: 0.55rem 1.1rem 0.6rem; background: rgb(5 5 7 / 0.9); border: 1px solid #2C2C35; border-top: 3px solid var(--red); border-radius: 4px;
+  }
+  /* le médaillon (dans le titre) est posé à gauche du bloc ; le titre reste un vrai titre (pas de display: contents) */
+  .astro-charframe .c-perso-card__head { display: block; position: relative; min-height: 3.2rem; padding-left: 4.05rem; }
+  .astro-charframe .c-perso-card__name { display: block; margin: 0; }
+  .astro-charframe .c-medal { position: absolute; left: 0; top: 50%; transform: translateY(-50%); --medal: 3.2rem; font-size: 1.1rem; }
+  .astro-charframe .c-perso-card__k { margin: 0; }
+  .astro-charframe .c-perso-card__nm { display: block; font: 700 1.6rem/1.05 var(--f-title); font-stretch: 70%; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ivory); }
+  .astro-charframe .c-perso-card__span { margin: 0.1rem 0 0; font-size: 0.95rem; line-height: 1.3; color: var(--ivory); }
+  .astro-charframe .c-perso-card__aka--head { display: block; margin: 0; font-size: 0.9rem; line-height: 1.3; color: var(--mist); }
+  /* la fiche à gauche : l'alias est déjà dans le cadre */
+  .astro-rail > .c-perso-card .c-perso-card__more > .c-perso-card__aka { display: none; }
+}
+:root:not([data-mode="personnages"]) .astro-rail > .c-perso-card { display: none; }
+/* la fiche sortie du bloc Personnages (colonne de droite) : plus de placement en 2e colonne */
+.astro-rail > .c-perso-card { grid-column: auto; grid-row: auto; }
+
+/* aperçu de la fiche : l'affiche en grand, en tête (sa hauteur suit celle de l'écran), le titre dessous */
+.c-preview__top { grid-template-columns: minmax(0, 1fr); gap: 0.6rem; }
+.c-preview__poster { justify-self: center; width: auto; height: min(35vh, 22rem); max-width: 100%; }
+.c-preview__poster--ph { width: calc(min(35vh, 22rem) * 2 / 3); padding: 0.9rem; }
+.c-preview__poster--ph .c-preview__roman { font-size: 3rem; }
+.c-preview__poster--ph .c-preview__ptitle { font-size: 1.1rem; }
+.c-preview__title { font-size: 1.35rem; }
+
+/* grand écran : la légende (symboles, code couleur) est affichée à gauche ; l'aide ne la répète pas */
+.astro-wide .c-help :is(.c-help__key, .color-key) { display: none; }
+
+/* -- squelette de chargement (concept.css) : le cadran au centre ; sur grand écran, les deux colonnes ;
+   sur téléphone, l'affiche et le titre en haut, l'arc du cadran en bas */
+:root.is-loading .c-skel--cadran { height: min(78vh, 46rem); overflow: hidden; }
+.c-skel--cadran .c-skel__b { position: absolute; }
+:root.is-loading .c-skel--cadran :is(.c-skel__ring, .c-skel__hub) { border-radius: 50%; }
+.c-skel--cadran .c-skel__ring {
+  --d: min(66vh, 36rem, 86vw); left: 50%; top: 50%; width: var(--d); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2); border-radius: 50%;
+  -webkit-mask: radial-gradient(circle closest-side, transparent 0 34%, #000 34.5% 40%, transparent 40.5% 72%, #000 72.5% 97%, transparent 97.5%);
+  mask: radial-gradient(circle closest-side, transparent 0 34%, #000 34.5% 40%, transparent 40.5% 72%, #000 72.5% 97%, transparent 97.5%);
+}
+.c-skel--cadran .c-skel__hub { --h: min(12vh, 6rem, 16vw); left: 50%; top: 50%; width: var(--h); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--h) / -2); border-radius: 50%; }
+.c-skel--cadran .c-skel__col, .c-skel--cadran .c-skel__poster, .c-skel--cadran .c-skel__line { display: none !important; }
+@media (min-width: 1100px) {
+  .c-skel--cadran .c-skel__col { display: block !important; top: 3%; width: min(19%, 17rem); height: 70%; border-radius: 12px; }
+  .c-skel--cadran .c-skel__col--l { left: 2%; }
+  .c-skel--cadran .c-skel__col--r { right: 2%; }
+}
+@media (max-width: 767px), (max-width: 1099px) and (max-height: 520px) {
+  :root.is-loading .c-skel--cadran { height: calc(100vh - 9rem); height: calc(100dvh - 9rem); }
+  .c-skel--cadran .c-skel__poster { display: block !important; left: 16px; top: 1rem; width: 7.5rem; aspect-ratio: 2 / 3; border-radius: 8px; }
+  .c-skel--cadran .c-skel__line { display: block !important; left: calc(16px + 8.5rem); height: 1.1rem; }
+  .c-skel--cadran .c-skel__line--1 { top: 2.2rem; width: calc(100% - 9.5rem - 32px); height: 1.6rem; }
+  .c-skel--cadran .c-skel__line--2 { top: 4.6rem; width: 40%; }
+  .c-skel--cadran .c-skel__ring { --d: 150vw; top: auto; bottom: calc(var(--d) * -0.62); margin-top: 0; }
+  .c-skel--cadran .c-skel__hub { display: none !important; }
+}
+
+/* -- barre « Cadran » : grand cadran, puis un bouton par cadran (a.js, syncPlateBar) ----------------------
+   au-dessus du cadran (tablette, téléphone) ou dans le panneau Cadran (grand écran) */
+.astro-plates { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.25rem clamp(0.75rem, 2vw, 1.5rem) 0.6rem; }
+.astro-plates[hidden], .astro-plates__b[hidden] { display: none; }
+.astro-plates__l { margin-right: 0.15rem; font: 600 0.84rem/1.2 var(--f-title); font-stretch: 75%; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mist); }
+.astro-plates__b {
+  display: inline-grid; justify-items: start; min-height: 44px; padding: 0.3rem 0.8rem; cursor: pointer; text-align: left;
+  border: 1px solid #45454F; border-radius: 10px; background: rgb(11 11 14 / 0.85); color: var(--ivory); font: inherit;
+}
+.astro-plates__n { font: 600 0.95rem/1.15 var(--f-title); font-stretch: 75%; letter-spacing: 0.04em; }
+.astro-plates__y { font: 400 0.8rem/1.2 var(--f-text); color: var(--mist); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* sagas du cadran : affichées dans le panneau Cadran (grand écran), lues ailleurs */
+.astro-plates__s { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.astro-side .astro-plates__s { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal;
+  font: 400 0.8rem/1.25 var(--f-text); color: var(--ivory); opacity: 0.8; }
+.astro-plates__b[aria-pressed="true"] { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red); }
+.astro-plates__b:hover:not([aria-pressed="true"]) { border-color: rgb(244 242 238 / 0.85); background: #16161B; }
+.astro-plates__b:focus-visible { outline: 3px solid var(--ivory); outline-offset: 2px; }
+.astro-side .astro-plates { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.35rem; margin: 0.7rem 0 0; }
+.astro-side .astro-plates__b { width: 100%; }
+/* téléphone : boutons côte à côte sur toute la largeur, défilement s'il y a beaucoup de cadrans (l'intitulé
+   « Cadran » reste lu, pas affiché) ; « Tous » au lieu de « Tous les cadrans » */
+:root.is-app .astro-plates { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(5.5rem, 1fr); gap: 0.4rem; margin: 0.1rem 16px 0.4rem; overflow-x: auto; scrollbar-width: none; }
+:root.is-app .astro-plates[hidden] { display: none; }
+:root.is-app .astro-plates__l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+:root.is-app .astro-plates__b { min-width: 0; padding: 0.25rem 0.6rem; }
+:root.is-app .astro-plates__n { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.875rem; }
+.astro-plates__short { display: none; }
+:root.is-app .astro-plates__b--all .astro-plates__n:not(.astro-plates__short) { display: none; }
+:root.is-app .astro-plates__b--all .astro-plates__short { display: block; }
+@media (forced-colors: active) {
+  .astro-plates__b { border-color: ButtonText; }
+  .astro-plates__b[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: Highlight; }
+}
+
+/* -- grand cadran : les cadrans en orbite, en petit (a.js, buildOverview) --------------------------------
+   Affiché à la place du cadran (:root.astro-overview) ; le dessin est aria-hidden, les boutons des cadrans
+   (.astro-ovb) sont posés sur les petits cadrans ; le cadran choisi, en haut, est décrit au centre. */
+.astro-ov, .astro-ovlist, .astro-ovhub { display: none; }
+:root.astro-overview:not(.is-list-view) .astro-ov { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
+:root.astro-overview:not(.is-list-view) .astro-ovlist { display: block; position: absolute; inset: 0; z-index: 3; margin: 0; padding: 0; list-style: none; pointer-events: none; }
+:root.astro-overview:not(.is-list-view) .astro-ovhub { display: flex; }
+:root.astro-overview:not(.is-list-view) .frise__svg,
+:root.astro-overview:not(.is-list-view) .astro-plate,
+:root.astro-overview:not(.is-list-view) .astro-index,
+:root.astro-overview:not(.is-list-view) .astro-phases,
+:root.astro-overview:not(.is-list-view) .astro-hub,
+:root.astro-overview:not(.is-list-view) .oeuvres { display: none; }
+:root.astro-overview:not(.is-list-view) .c-zoom { visibility: hidden; } /* le zoom vaut pour un cadran ouvert */
+.astro-ov path, .astro-ov circle { vector-effect: non-scaling-stroke; }
+.astro-ov__engr { font-family: var(--f-title); font-stretch: 75%; font-weight: 600; font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; fill: var(--ivory); opacity: 0.66; }
+.frise[data-layout="mobile"] .astro-ov__engr { font-size: 9px; letter-spacing: 0.24em; }
+/* petit cadran : disque, un anneau teinté par saga, graduations, spirale des œuvres et son fil ; liseré
+   ivoire, rouge pour le cadran choisi */
+.astro-ovdial { transition: opacity 0.2s ease; }
+.astro-ovdial__disc { fill: rgb(15 15 20 / 0.97); }
+.astro-ovdial__band { fill: color-mix(in srgb, var(--saga-color, var(--ivory)) 20%, transparent); stroke: none; }
+.astro-ovdial__sep { fill: none; stroke: var(--ivory); stroke-width: 0.6; stroke-dasharray: 3 3; opacity: 0.5; }
+.astro-ovdial__rim { fill: none; stroke: var(--ivory); stroke-width: 1.4; opacity: 0.55; }
+.astro-ovdial__hair { fill: none; stroke: var(--ivory); stroke-width: 0.6; opacity: 0.22; }
+.astro-ovdial__tick { fill: none; stroke: var(--ivory); stroke-width: 0.6; opacity: 0.34; }
+.astro-ovdial__threadrim { fill: none; stroke: var(--gold); stroke-width: 3.6; opacity: 0.4; stroke-linecap: round; vector-effect: none; }
+.astro-ovdial__thread { fill: none; stroke: #050507; stroke-width: 1.8; stroke-linecap: round; vector-effect: none; }
+.astro-ovdial__dot { fill: var(--phase-color, var(--ivory)); stroke: rgb(15 15 20); stroke-width: 0.8; vector-effect: none; }
+.astro-ovdial__dot--series { fill: rgb(15 15 20); stroke: var(--phase-color, var(--ivory)); stroke-width: 1.6; }
+.astro-ovdial__dot.is-upcoming { fill: rgb(15 15 20); stroke: var(--phase-color, var(--ivory)); stroke-width: 1.4; stroke-dasharray: 2.2 1.6; }
+.astro-ovdial.is-hover .astro-ovdial__rim { stroke-width: 2.4; opacity: 1; }
+.astro-ovdial.is-on .astro-ovdial__rim { stroke: var(--red); stroke-width: 3; opacity: 1; }
+.astro-ovdial:not(.is-on) { opacity: 0.78; }
+/* bouton d'un cadran : rond, posé sur son petit cadran ; nom et années sur une pastille en bas */
+.astro-ovb {
+  position: absolute; left: var(--ox, 0); top: var(--oy, 0); width: var(--od, 0); height: var(--od, 0); padding: 0;
+  border: 0; border-radius: 50%; background: transparent; color: var(--ivory); font: inherit; cursor: pointer; pointer-events: auto;
+}
+.astro-ovb:focus-visible { outline: 3px solid var(--ivory); outline-offset: 5px; }
+.astro-ovb__lab {
+  position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); display: grid; justify-items: center; gap: 1px;
+  padding: 0.28rem 0.7rem 0.3rem; border: 1px solid rgb(244 242 238 / 0.22); border-radius: 999px;
+  background: rgb(8 8 11 / 0.88); white-space: nowrap; line-height: 1.15; pointer-events: none;
+}
+.astro-ovb__n { font: 600 0.92rem/1.15 var(--f-title); font-stretch: 75%; letter-spacing: 0.05em; text-transform: uppercase; }
+.astro-ovb__y { font: 400 0.75rem/1.2 var(--f-text); color: var(--mist); font-variant-numeric: tabular-nums; }
+.astro-ovb.is-small .astro-ovb__lab { padding: 0.2rem 0.55rem; bottom: 5%; }
+.astro-ovb.is-tiny .astro-ovb__y { display: none; }
+.astro-ovb.is-tiny .astro-ovb__n { font-size: 0.78rem; }
+/* le cadran choisi est décrit au centre ; son étiquette s'efface (le bouton garde son nom) */
+.frise:not([data-layout="mobile"]) .astro-ovb.is-on .astro-ovb__lab { opacity: 0; }
+/* cadran choisi : au centre du grand cadran ; téléphone : au-dessus */
+.astro-ovhub {
+  position: absolute; left: var(--ovx, 50%); top: var(--ovy, 50%); transform: translate(-50%, -50%); width: var(--ovw, 14rem);
+  z-index: 2; flex-direction: column; align-items: center; gap: 0.1rem; text-align: center; pointer-events: none;
+}
+.astro-ovhub p { margin: 0; }
+.astro-ovhub__k { font: 600 0.72rem/1.2 var(--f-title); font-stretch: 75%; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mist); }
+.astro-ovhub__t { font: 600 1.15rem/1.15 var(--f-title); font-stretch: 75%; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ivory); }
+.astro-ovhub__p { font: 400 0.82rem/1.3 var(--f-text); color: var(--mist); font-variant-numeric: tabular-nums; }
+.astro-ovhub.is-crowded .astro-ovhub__t { font-size: 1rem; }
+.astro-nw { white-space: nowrap; }
+.astro-ovhub__hint { margin-top: 0.25rem !important; font: 400 0.75rem/1.3 var(--f-text); color: rgb(244 242 238 / 0.62); }
+@media (forced-colors: active) {
+  .astro-ovdial__disc { fill: Canvas; }
+  .astro-ovdial__rim, .astro-ovdial__hair, .astro-ovdial__tick, .astro-ovdial__sep, .astro-ovdial__thread { stroke: CanvasText; opacity: 1; }
+  .astro-ovdial__band, .astro-ovdial__threadrim { display: none; }
+  .astro-ovdial__dot { fill: CanvasText; stroke: Canvas; }
+  .astro-ovdial.is-on .astro-ovdial__rim { stroke: Highlight; }
+  .astro-ovb__lab { forced-color-adjust: none; background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .astro-ov__engr { fill: CanvasText; opacity: 1; }
+}

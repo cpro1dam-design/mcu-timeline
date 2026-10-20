@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "note": "Chaque entrée cite une source (URL) et un court extrait. Aucune valeur sans source.",
+  "universes": [
+    {
+      "work": "Q105105219",
+      "universe": "earth-828",
+      "source": "https://fr.wikipedia.org/w/index.php?oldid=239981108",
+      "quote": "En 1964, sur la Terre-828, un monde aux allures rétrofuturistes, les Quatre Fantastiques…"
+    },
+    {
+      "work": "Q102180106",
+      "universe": "earth-10005",
+      "source": "https://fr.wikipedia.org/w/index.php?oldid=239674172",
+      "quote": "Six ans plus tard, sur la Terre-10005, Wade a pris sa retraite en tant que Deadpool"
+    }
+  ],
+  "fields": []
+}

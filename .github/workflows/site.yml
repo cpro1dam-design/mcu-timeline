@@ -1,0 +1,105 @@
+# Mise à jour automatique des données + publication GitHub Pages.
+# Inactif tant que le dépôt n'existe pas sur GitHub. Prérequis (à faire par l'éditeur) :
+#   - dépôt public (GitHub Pages gratuit), Pages configuré sur « GitHub Actions » ;
+#   - secret TMDB_TOKEN (jeton « API Read Access Token » de TMDB) ;
+#   - variable FRISE_CONTACT (URL du dépôt ou alias e-mail, pour le User-Agent Wikimedia).
+# Les données TMDB ne sont jamais commitées : elles sont récupérées à chaque exécution et ne vivent
+# que dans l'artefact publié (CGU TMDB : cache limité à 6 mois ; exécution hebdomadaire).
+name: Données et publication
+
+on:
+  schedule:
+    - cron: '17 4 * * 1'   # chaque lundi, 04:17 UTC (minute impaire : évite les pics)
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore: ['data/build/**', 'data/curated/slugs.json']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # commit des données sourcées (data/build)
+      issues: write     # ticket en cas d'échec des contrôles
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+    env:
+      FRISE_CONTACT: ${{ vars.FRISE_CONTACT }}
+      TMDB_TOKEN: ${{ secrets.TMDB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - run: pip install --no-cache-dir -r requirements-ci.txt
+      - name: Récupération des sources (Wikidata, Wikipédia)
+        run: python -X utf8 tools/update.py --refresh
+      - name: Récupération TMDB (hors git)
+        run: python -X utf8 tools/pipeline/fetch_tmdb.py
+      - name: Contrôles avant publication
+        id: check
+        run: python -X utf8 tools/check_data.py
+      - name: Tests
+        run: python -X utf8 -m unittest discover -s tools/tests
+      - name: Commit des données (si changement)
+        id: commit
+        run: |
+          git config user.name "frise-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/build data/curated/slugs.json
+          if git diff --cached --quiet; then
+            echo "Aucun changement de données."
+          else
+            git commit -m "data: mise à jour du $(date -u +%F)"
+            git push
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Ticket en cas d'échec
+        if: failure()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const title = 'Mise à jour des données bloquée';
+            const open = await github.rest.issues.listForRepo({ owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'revue-données' });
+            if (!open.data.some(i => i.title === title)) {
+              await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title,
+                labels: ['revue-données'],
+                body: `Les contrôles ont échoué : la version précédente reste en ligne.\n\nJournal : ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}` });
+            }
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      TMDB_TOKEN: ${{ secrets.TMDB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.update.outputs.sha }}   # données fraîchement commitées, pas le SHA de l'événement
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - run: pip install --no-cache-dir -r requirements-ci.txt
+      - name: Récupération TMDB (affiches incluses, hors git)
+        run: python -X utf8 tools/pipeline/fetch_tmdb.py
+      - name: Génération du site
+        run: python -X utf8 tools/build_site.py
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "note": "Fichier tenu à la main. Les QID et libellés de phases/sagas viennent de Wikidata (CC0). Les palettes et les couleurs (« color ») sont des choix de design, pas des faits : code couleur par saga (famille de teintes) et par phase (nuances de la famille), ≥ 4,5:1 sur le fond #08080B ; l'accent de palette d'une phase reprend sa couleur tant qu'aucune palette n'est extraite des affiches.",
+  "mcu": { "id": "Q642878", "source": "https://www.wikidata.org/wiki/Q642878" },
+  "sagas": [
+    { "id": "infinity",   "qid": "Q63405798",  "label_fr": "La Saga de l’Infini",  "label_original": "The Infinity Saga",   "phases": [1, 2, 3], "color": "#F2B33D", "color_name": "or", "source": "https://www.wikidata.org/wiki/Q63405798" },
+    { "id": "multiverse", "qid": "Q113292798", "label_fr": "La Saga du Multivers", "label_original": "The Multiverse Saga", "phases": [4, 5, 6], "color": "#6FA8FF", "color_name": "bleu", "source": "https://www.wikidata.org/wiki/Q113292798" }
+  ],
+  "phases": [
+    { "n": 1, "roman": "I",   "qid": "Q51963292",  "color": "#F7D774", "color_name": "or pâle", "saga": "infinity",   "source": "https://www.wikidata.org/wiki/Q51963292",  "palette": { "sky": "#121A2E", "nebula": ["#1E2A4A", "#2A2340"], "accent": "#F7D774" } },
+    { "n": 2, "roman": "II",  "qid": "Q51963356",  "color": "#F2A93B", "color_name": "ambre", "saga": "infinity",   "source": "https://www.wikidata.org/wiki/Q51963356",  "palette": { "sky": "#131A2C", "nebula": ["#1C2C46", "#2B2238"], "accent": "#F2A93B" } },
+    { "n": 3, "roman": "III", "qid": "Q51963836",  "color": "#EC7A3C", "color_name": "cuivre", "saga": "infinity",   "source": "https://www.wikidata.org/wiki/Q51963836",  "palette": { "sky": "#16172A", "nebula": ["#2A2246", "#3A1F2C"], "accent": "#EC7A3C" } },
+    { "n": 4, "roman": "IV",  "qid": "Q62604229",  "color": "#5ED6C8", "color_name": "turquoise", "saga": "multiverse", "source": "https://www.wikidata.org/wiki/Q62604229",  "palette": { "sky": "#10192A", "nebula": ["#16304A", "#26224A"], "accent": "#5ED6C8" } },
+    { "n": 5, "roman": "V",   "qid": "Q104643359", "color": "#5B98FA", "color_name": "bleu", "saga": "multiverse", "source": "https://www.wikidata.org/wiki/Q104643359", "palette": { "sky": "#141628", "nebula": ["#2A2050", "#1C2A48"], "accent": "#5B98FA" } },
+    { "n": 6, "roman": "VI",  "qid": "Q113281347", "color": "#C3A6FF", "color_name": "lavande", "saga": "multiverse", "source": "https://www.wikidata.org/wiki/Q113281347", "palette": { "sky": "#11182A", "nebula": ["#1A2C50", "#2E2440"], "accent": "#C3A6FF" } }
+  ],
+  "neutral_palette": { "sky": "#0F1424", "nebula": ["#1A2238", "#221E36"], "accent": "#CED4E2" },
+  "neutral_color": "#C9C9D1",
+  "universes": [
+    { "id": "earth-616",   "label_fr": "Univers principal", "main": true,  "lane": 0 },
+    { "id": "earth-828",   "label_fr": "Terre-828",          "main": false, "lane": 1 },
+    { "id": "earth-10005", "label_fr": "Terre-10005",        "main": false, "lane": -1 },
+    { "id": "multiverse",  "label_fr": "Multivers",          "main": false, "lane": 2 }
+  ],
+  "levels": [
+    { "id": "principal",  "label_fr": "Rôle principal",       "rule_fr": "Parmi les 6 premiers noms au générique (ordre TMDB)." },
+    { "id": "secondaire", "label_fr": "Rôle secondaire",      "rule_fr": "Crédité au générique au-delà des 6 premiers noms (ordre TMDB)." },
+    { "id": "cameo",      "label_fr": "Caméo ou non crédité", "rule_fr": "Qualificatif Wikidata « non crédité » (Q16582801) ou « caméo » (Q191796), ou mention « uncredited » sur TMDB." }
+  ],
+  "kinds": [
+    { "id": "film",    "label_fr": "Film" },
+    { "id": "series",  "label_fr": "Série" }
+  ],
+  "discovery_pages_frwiki": [
+    "Liste des films de l'univers cinématographique Marvel"
+  ]
+}

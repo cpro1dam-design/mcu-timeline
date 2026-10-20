@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr" data-page="hub">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="color-scheme" content="dark">
+<title>Les deux frises · Frise MCU</title>
+<meta name="description" content="Deux façons de parcourir l’univers cinématographique Marvel : Éphémérides, un cadran, et Fil noir, une frise.">
+<link rel="stylesheet" href="../shared/css/fonts.css">
+<link rel="stylesheet" href="../shared/css/base.css">
+<link rel="stylesheet" href="hub.css">
+<!-- précharge : début (généré par tools/build_site.py, ne pas modifier à la main) -->
+<meta name="frise-data" content="{&quot;characters.json&quot;:&quot;bd9ac7fae9&quot;,&quot;search.json&quot;:&quot;743f8d99a5&quot;,&quot;status.json&quot;:&quot;9ab0b7bdbd&quot;,&quot;taxonomy.json&quot;:&quot;2e90ba0476&quot;,&quot;texts.json&quot;:&quot;8dc811d39a&quot;,&quot;works.json&quot;:&quot;1585ccd3f6&quot;}">
+<link rel="preload" href="../shared/fonts/archivo/archivo-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../shared/fonts/antonio/antonio-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="modulepreload" href="../shared/js/totop.js">
+<link rel="modulepreload" href="../shared/js/offline.js">
+<link rel="modulepreload" href="../shared/js/prefs.js">
+<link rel="modulepreload" href="../shared/js/data.js">
+<!-- précharge : fin -->
+<link rel="icon" href="../shared/img/favicon.svg" type="image/svg+xml">
+<script type="module" src="hub.js"></script>
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<header class="site-header">
+  <p class="site-header__name"><a href="../index.html">Frise MCU</a></p>
+  <p class="site-header__tag">Site de fan non officiel</p>
+  <nav aria-label="Navigation principale" class="site-nav">
+    <ul>
+      <li><a href="../index.html">Les œuvres</a></li>
+      <li><a href="index.html" aria-current="page">Les frises</a></li>
+      <li><a href="../pages/a-propos.html">À propos</a></li>
+      <li><a href="../pages/methode.html">Méthode</a></li>
+    </ul>
+  </nav>
+</header>
+<main id="contenu" tabindex="-1">
+  <h1>Deux frises, une même chronologie</h1>
+  <p class="lead">Les mêmes œuvres, les mêmes sources et les mêmes commandes, sous deux formes : un cadran qu’on fait tourner, ou une frise qu’on parcourt. Vos réglages et vos marques « vu » ou « à voir » valent pour les deux ; dans Réglages, un lien mène à l’autre frise sans perdre votre place.</p>
+
+  <ul class="specimens">
+    <li class="specimen specimen--a">
+      <article aria-labelledby="sp-a">
+        <p class="specimen__label">Le cadran</p>
+        <h2 id="sp-a" class="specimen__name">Éphémérides</h2>
+        <img class="specimen__thread" src="../shared/img/apercu-ephemerides.svg" alt="" width="160" height="100">
+        <dl class="specimen__facts">
+          <div><dt>Vue d’ensemble</dt><dd>Un cadran : les œuvres en cercle, une phase par secteur. On le fait tourner sous l’index à la molette, aux flèches du clavier, avec les boutons ◀ ▶ ou au pouce.</dd></div>
+          <div><dt>Le fil</dt><dd>Un trait rouge, bordé du ruban de couleur de chaque phase.</dd></div>
+          <div><dt>Grand écran</dt><dd>La fiche de l’œuvre sous l’index s’affiche à droite du cadran ; au survol d’un point, celle de ce point.</dd></div>
+          <div><dt>Téléphone</dt><dd>L’arc du cadran en bas ; en haut, l’affiche de l’œuvre sous l’index et son titre.</dd></div>
+          <div><dt>Typographie</dt><dd><span class="type-a">Archivo étroit</span> + <span class="type-a2">Newsreader</span></dd></div>
+        </dl>
+        <p class="specimen__links"><a class="button" href="../concepts/a-astrolabe/index.html">Ouvrir Éphémérides</a> <button type="button" class="button" data-preview="../concepts/a-astrolabe/index.html" data-name="Éphémérides">Aperçu mobile</button></p>
+      </article>
+    </li>
+    <li class="specimen specimen--c">
+      <article aria-labelledby="sp-c">
+        <p class="specimen__label">La frise</p>
+        <h2 id="sp-c" class="specimen__name">Fil noir</h2>
+        <img class="specimen__thread" src="../shared/img/apercu-fil-noir.svg" alt="" width="160" height="100">
+        <dl class="specimen__facts">
+          <div><dt>Vue d’ensemble</dt><dd>Une frise de musée : le fil noir sur une bande d’horizon claire, une aiguille rouge au centre. À l’arrivée, toute la frise tient dans l’écran.</dd></div>
+          <div><dt>Les affiches</dt><dd>Une petite affiche sous chaque œuvre, dans le sol-miroir, agrandie au survol.</dd></div>
+          <div><dt>Navigation</dt><dd>Molette ou clic pour zoomer ; ‹ › ou les flèches du clavier pour passer d’une œuvre à l’autre.</dd></div>
+          <div><dt>Téléphone</dt><dd>La frise devient verticale, avec une vignette d’affiche pour chaque œuvre.</dd></div>
+          <div><dt>Typographie</dt><dd><span class="type-c">Antonio</span> + Inter + <span class="type-c2">Instrument Serif</span></dd></div>
+        </dl>
+        <p class="specimen__links"><a class="button" href="../concepts/c-horizon/index.html">Ouvrir Fil noir</a> <button type="button" class="button" data-preview="../concepts/c-horizon/index.html" data-name="Fil noir">Aperçu mobile</button></p>
+      </article>
+    </li>
+  </ul>
+
+  <section aria-labelledby="h-commun">
+    <h2 id="h-commun">Dans les deux frises</h2>
+    <ul class="common">
+      <li>Trois modes : Phases, Chronologie (ordre de sortie ou ordre de l’histoire) et Personnages.</li>
+      <li>La recherche : titre français ou original, personnage, alias ou acteur.</li>
+      <li>« Vus et à voir » : on marque les œuvres d’après leurs affiches, une à une ou par phase, puis la frise n’affiche, au choix, que les œuvres vues, pas encore vues ou à voir.</li>
+      <li>Pas de spoiler : l’intrigue complète ne s’affiche que si on la demande ; les caméos restent masqués pour les œuvres pas encore vues.</li>
+      <li>Les Archives : la fiche plein écran de chaque œuvre, en Codex ou en Journal, avec ses sources.</li>
+      <li>Sur téléphone, une interface d’appli : onglets en bas, Réglages, bouton Retour.</li>
+    </ul>
+    <p class="note">Les deux frises reposent sur la <a href="../index.html">liste des œuvres</a>, lisible sans JavaScript. Voir aussi les <a href="sources.html">sources et inspirations</a> de leur conception.</p>
+  </section>
+
+  <dialog id="apercu" class="apercu" aria-labelledby="apercu-titre">
+    <div class="apercu__bar">
+      <h2 id="apercu-titre">Aperçu mobile</h2>
+      <button type="button" class="button" id="apercu-fermer">Fermer l’aperçu</button>
+    </div>
+    <div class="apercu__frame" id="apercu-cadre"></div>
+  </dialog>
+</main>
+<footer class="site-footer">
+  <p>Site de fan non officiel et non commercial. Non affilié à Marvel Studios, Marvel Entertainment ni à The Walt Disney Company.</p>
+  <nav aria-label="Informations légales">
+    <ul class="site-footer__links">
+      <li><a href="../pages/mentions-legales.html">Mentions légales</a></li>
+      <li><a href="../pages/confidentialite.html">Confidentialité</a></li>
+      <li><a href="../pages/accessibilite.html">Accessibilité : non conforme</a></li>
+      <li><a href="../pages/sources.html">Sources, crédits et licences</a></li>
+    </ul>
+  </nav>
+</footer>
+</body>
+</html>

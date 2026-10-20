@@ -1,0 +1,733 @@
+/* Maquette C « Fil noir » : HORIZON, frise éditoriale de musée.
+   Une bande d'horizon lumineuse (teinte de l'œuvre centrale, --band) ; le fil, trait d'encre noire,
+   y est posé ; les œuvres sont des perles d'encre cerclées d'un filet clair. Rouge, blanc, noir :
+   rouge #E3262E pour le nom du site, l'aiguille, les chiffres de phase actifs, le mode et le réglage
+   actifs, le cartel de l'œuvre centrale ; rouge clair #FF5A5F pour le petit texte ; blanc et noir pour le reste.
+   Classes de rendu posées par c.js sur <html> : .c-h (frise horizontale), .c-vertical (mobile).
+   Contrastes : encre #05060A sur --band ≥ 4,9:1 (bandes 0,21–0,23 de luminance) ; texte sur panneaux
+   rgb(7 7 10 / ≥ .82) ; grands chiffres rouges sur sol assombri ≥ 3,5:1. */
+
+:root {
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Antonio', 'Archivo', 'Arial Narrow', sans-serif;
+  --c-serif: 'Instrument Serif', 'Newsreader', Georgia, serif;
+  --c-red: var(--red);
+  --c-red-text: var(--red-text);
+  --c-ink: #050506;
+  --c-ivory: #F4F2EE;
+  --c-panel: rgb(7 7 10 / 0.86);
+  --c-line: rgb(244 242 238 / 0.16);
+  --signature: var(--c-red);
+  --signature-text: var(--c-red-text);
+  --thread-core: var(--c-ink);
+  --c-bd: 14px;
+}
+
+/* -- en-tête --------------------------------------------------------------------------- */
+.c-header { gap: 0.35rem 1.75rem; background: linear-gradient(180deg, rgb(4 4 6 / 0.96), rgb(4 4 6 / 0.86)); border-bottom: 2px solid var(--c-red); }
+.c-brand a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.6rem; font: 700 1.55rem/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: #fff; background: var(--c-red); }
+.c-brand__tag { font: italic 400 1.0625rem/1.2 var(--c-serif); color: var(--fg-2); }
+.c-modes a { font: 500 0.78rem/44px var(--font); letter-spacing: 0.16em; text-transform: uppercase; }
+.c-modes a[aria-current="page"] { color: #fff; border-bottom: 3px solid var(--c-red); }
+.c-tools { gap: 0.4rem; }
+.c-tools .button, .c-tools .segmented button, .c-settings summary { font-size: 0.875rem; }
+.c-tools .button { padding: 0.5rem 0.9rem; }
+.c-settings summary { line-height: 42px; }
+.c-field { padding: 0.5rem clamp(0.75rem, 2vw, 1.5rem); background: rgb(5 5 7 / 0.88); border-bottom: 1px solid var(--c-line); }
+.c-field label { font: 600 0.75rem/1.2 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); }
+
+main#contenu { position: relative; }
+
+/* -- contenu commun du bouton d'une œuvre (cartel + perle) ----------------------------- */
+.node__meta { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+.c-plate { display: block; text-align: left; }
+.c-plate > * { display: block; }
+.c-kicker, .c-vo, .c-phase, .c-rank, .c-prov, .c-univ, .c-status { display: none; }
+.c-plate .node__title { font: 600 0.8125rem/1.22 var(--font); color: var(--fg); overflow-wrap: anywhere; }
+.c-kicker { font: 600 0.6875rem/1.3 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-2); }
+.c-date { font: italic 400 0.9375rem/1.15 var(--c-serif); color: var(--fg-2); }
+.c-vo { font: italic 400 0.95rem/1.2 var(--c-serif); color: var(--fg-2); }
+.c-phase, .c-rank, .c-univ { font: 500 0.75rem/1.35 var(--font); letter-spacing: 0.06em; color: var(--fg-2); }
+.c-prov, .c-status { font: italic 400 0.95rem/1.2 var(--c-serif); color: var(--c-ivory); }
+.c-prov::before, .c-status::before { content: "— "; }
+.c-hd { display: none; }
+.c-intro-m { display: none; }
+:is(.c-vertical, .is-list-view) .node.is-seen .node__btn { border-top: 2px solid var(--seen); background: linear-gradient(180deg, rgb(63 207 110 / 0.16), rgb(63 207 110 / 0.04)), var(--c-panel); } /* œuvre vue : case en vert */
+.node.is-dimmed { opacity: 1; } /* atténuation sans opacité : le texte garde ≥ 4,5:1 */
+.node.is-dimmed :is(.node__title, .c-date, .c-kicker, .c-vo, .c-phase, .c-rank, .c-univ, .c-prov, .c-status) { color: #93939E; }
+.oeuvres .node.is-dimmed .c-bead { background: transparent; border: 2px solid var(--c-ink); box-shadow: none; } /* anneau d'encre ≥ 3:1 sur la bande */
+
+/* =========================================================================================
+   ORDINATEUR / TABLETTE : frise horizontale (.c-h)
+   ========================================================================================= */
+.c-h .frise {
+  height: var(--c-h, 600px); min-height: 0; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
+  scrollbar-width: thin; scrollbar-color: rgb(244 242 238 / 0.35) transparent;
+}
+.c-h .frise::-webkit-scrollbar { height: 8px; }
+.c-h .frise::-webkit-scrollbar-thumb { background: rgb(244 242 238 / 0.35); border-radius: 4px; }
+.c-h .frise.is-dragging { cursor: grabbing; user-select: none; }
+.c-h .frise__svg { right: auto; bottom: auto; width: var(--c-w, 100%); height: var(--c-h, 100%); z-index: 3; }
+
+/* mur : rail des années, travées, introduction ; la bande d'horizon en est le pseudo-élément */
+.c-wall { position: absolute; left: 0; top: 0; width: var(--c-w, 100%); height: var(--c-h, 100%); z-index: 1; pointer-events: none; }
+.c-wall::before { /* rail continu */
+  content: ""; position: absolute; left: 0; right: 0; top: var(--c-rt); height: var(--c-rh);
+  background: rgb(7 7 10 / 0.6); border-bottom: 1px solid var(--c-line);
+}
+.c-wall::after { /* bande d'horizon, ≈ 140 px, teintée par l'œuvre centrale (fondu de --band) */
+  content: ""; position: absolute; left: 0; right: 0; top: calc(var(--c-by) - 70px); height: 140px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--band) 30%, transparent) 13%,
+    color-mix(in srgb, var(--band) 90%, transparent) 22%,
+    color-mix(in srgb, var(--band) 88%, #FFF 12%) 50%,
+    color-mix(in srgb, var(--band) 90%, transparent) 78%,
+    color-mix(in srgb, var(--band) 30%, transparent) 87%,
+    transparent 100%);
+  box-shadow: 0 0 80px 0 color-mix(in srgb, var(--band) 22%, transparent);
+}
+
+/* sol-miroir : reflet assombri de la bande, libellés de phases */
+.c-floor {
+  position: absolute; left: 0; top: var(--c-ft); width: var(--c-w, 100%); height: calc(var(--c-h) - var(--c-ft)); z-index: 2; pointer-events: none;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--band) 36%, #050507) 0,
+    color-mix(in srgb, var(--band) 16%, #050507) 16px,
+    color-mix(in srgb, var(--band) 7%, #060608) 42%,
+    rgb(6 6 8 / 0.95) 100%);
+  border-top: 1px solid color-mix(in srgb, var(--band) 55%, #FFF 30%);
+}
+.c-floor::before { /* reflet flou de la bande (dégradé seulement, aucune donnée) */
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 46px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--band) 30%, transparent), transparent);
+  opacity: 0.55;
+}
+
+/* graduations (SVG) */
+.c-ticks .c-grid { stroke: rgb(244 242 238 / 0.09); stroke-width: 1; }
+.c-ticks .c-tick { stroke: var(--c-ink); stroke-width: 1.25; }
+.c-ticks .c-tick--minor { stroke-width: 1; opacity: 0.75; }
+
+/* fil : traitement « encre » */
+.thread--ink .thread__mask { display: none; }
+.thread--ink .thread__glow { stroke: color-mix(in srgb, var(--band) 55%, #FFF 45%); stroke-width: 7; opacity: 0.3; }
+.thread--ink .thread__rim { stroke: transparent; stroke-width: 0; }
+.thread--ink .thread__core { stroke: var(--c-ink); stroke-width: 2.5; }
+.thread--ink .thread__branch .thread__glow { stroke-width: 5; }
+.thread--ink .thread__branch .thread__core { stroke-width: 2; stroke-dasharray: 6 4; }
+.thread--ink.is-dimmed { opacity: 1; }
+.thread--ink.is-dimmed .thread__main, .thread--ink.is-dimmed .thread__branch, .thread--ink.is-dimmed .c-ticks { opacity: 0.45; }
+
+/* trame d'un personnage (sous l'horizon) */
+.c-trame .c-arc { fill: none; stroke: var(--c-ivory); stroke-width: 1.5; }
+.c-trame .c-arc-ring { fill: none; stroke: var(--c-ivory); stroke-width: 1.5; }
+
+/* rail des années (ordre de sortie) ou des rangs (ordre de l'histoire) */
+.c-yr {
+  position: absolute; top: var(--c-rt); height: var(--c-rh); padding: 0.5rem 0 0 0; overflow: hidden; overflow: clip; /* clip : garde le libellé collant */
+  background: rgb(7 7 10 / 0.84); border-left: 1px solid rgb(244 242 238 / 0.22);
+  font: 700 var(--c-yr, 3.25rem)/1 var(--font-display); letter-spacing: 0.01em; color: var(--fg-2);
+  transition: color 0.3s ease, box-shadow 0.3s ease;
+}
+.c-yr__t { position: sticky; left: 0.55rem; display: inline-block; margin-left: 0.55rem; }
+/* années très étroites : le libellé (une année sur deux ou trois) passe sur les voisines, restées sans libellé */
+.c-yr.is-spill { overflow: visible; z-index: 1; }
+.c-yr.is-spill .c-yr__t { white-space: nowrap; }
+.c-yr.is-empty { color: #80808C; }
+.c-yr.is-active { color: #FFF; box-shadow: inset 0 3px 0 var(--c-red); }
+.c-yr--rank { font-weight: 700; }
+.c-yr--rank .c-yr__t::before { content: "rang "; display: block; margin-bottom: 0.15rem; font: 600 0.6875rem/1 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); }
+.frise[data-zoom="sagas"] { --c-yr: 1.5rem; --c-bd: 8px; }
+.frise[data-zoom="phases"] { --c-yr: 2.125rem; --c-bd: 10px; }
+.frise[data-zoom="oeuvres"] { --c-yr: 3.4rem; --c-bd: 14px; }
+.frise[data-zoom="detail"] { --c-yr: 3.9rem; --c-bd: 16px; }
+.frise[data-zoom="sagas"] .c-yr--rank, .frise[data-zoom="phases"] .c-yr--rank { --c-yr: 1.5rem; }
+.frise[data-zoom="sagas"] .c-yr--rank .c-yr__t::before { display: none; }
+
+/* introduction (marge de gauche) */
+.c-intro {
+  position: absolute; display: flex; flex-direction: column; gap: 0.45rem; padding: 0.95rem 1.25rem 1.05rem; overflow: hidden;
+  background: var(--c-panel); border-top: 1px solid rgb(244 242 238 / 0.45);
+}
+.c-intro__k { font: 600 0.6875rem/1.3 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); }
+.c-intro__t { font: 700 3rem/0.92 var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg); }
+.c-intro__s { font: italic 400 1.25rem/1.15 var(--c-serif); color: var(--c-ivory); }
+.c-intro__h { font: 400 0.8125rem/1.45 var(--font); color: var(--fg-2); max-width: 52ch; }
+.c-intro--floor { flex-flow: row wrap; align-items: baseline; gap: 0.25rem 1.1rem; padding: 0.75rem 1.1rem 0.85rem; }
+.c-intro--floor .c-intro__t { font-size: 2.6rem; }
+
+/* travées : sagas (N0), phases (N1), filigrane des phases (mode Phases) */
+.c-pn {
+  position: absolute; top: var(--c-pt); height: var(--c-ph); display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem;
+  padding: 0.85rem 0; overflow: hidden; overflow: clip;
+  background: linear-gradient(180deg, rgb(7 7 10 / 0.88), rgb(7 7 10 / 0.82)); border-top: 1px solid rgb(244 242 238 / 0.4);
+  transition: border-color 0.3s ease;
+}
+.c-pn > * { position: sticky; left: 1rem; margin-left: 1rem; max-width: calc(100% - 2rem); }
+.c-pn__k { font: 600 0.6875rem/1.3 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); }
+.c-pn__t { font: 700 clamp(2.25rem, 4.2vw, 3.6rem)/0.95 var(--font-display); letter-spacing: 0.03em; text-transform: uppercase; color: var(--fg); }
+/* titre de saga à la mesure de sa travée (c.js : --pn-t) ; une travée très étroite coupe le titre */
+.c-pn--saga .c-pn__t { font-size: var(--pn-t, clamp(2.25rem, 4.2vw, 3.6rem)); overflow-wrap: anywhere; }
+.c-pn--saga { overflow: hidden; }
+.c-pn__y { font: italic 400 1.4rem/1.15 var(--c-serif); color: var(--c-ivory); }
+.c-pn__c { font: 400 0.875rem/1.4 var(--font); color: var(--fg-2); }
+.c-pn--saga.is-narrow .c-pn__t { font-size: min(1.5rem, var(--pn-t, 1.5rem)); }
+.c-pn--phase { gap: 0.1rem; }
+.c-pn--phase .c-pn__n { font: 300 var(--n, 120px)/0.84 var(--font-display); color: var(--c-ivory); letter-spacing: -0.01em; }
+.c-pn--phase.is-active { border-top-color: var(--c-ivory); }
+.c-pn--phase.is-active .c-pn__n { color: var(--c-red); }
+.c-pn--phase.is-narrow { padding: 0.6rem 0.4rem; align-items: center; }
+.c-pn--saga.is-narrow { padding: 0.85rem 0.6rem; }
+.c-pn--saga.is-narrow > *, .c-pn--phase.is-narrow > * { margin-left: 0; max-width: 100%; }
+.c-pn--saga.is-narrow > * { position: static; }
+.c-pn--phase.is-narrow > * { position: static; }
+.c-pn--saga.is-vertical { padding: 0.6rem 0; align-items: center; }
+.c-pn--saga.is-vertical .c-pn__k { display: none; }
+.c-pn--saga.is-vertical .c-pn__t {
+  writing-mode: vertical-rl; transform: rotate(180deg); font-size: var(--pn-t, 1rem); line-height: 1;
+  white-space: nowrap; overflow-wrap: normal; max-width: none; max-height: 100%;
+}
+.c-pn--faint { padding: 0; background: rgb(244 242 238 / 0.025); border-top: 1px solid rgb(244 242 238 / 0.12); }
+.c-pn--faint.is-active { background: rgb(244 242 238 / 0.05); border-top-color: rgb(244 242 238 / 0.3); }
+
+/* étiquette d'univers au bout d'une branche (posée sur la bande, sur panneau) */
+.c-uni {
+  position: absolute; z-index: 1; transform: translateY(-50%); padding: 0.12rem 0.5rem 0.18rem; white-space: nowrap;
+  background: rgb(7 7 10 / 0.88); border-left: 1.5px solid var(--c-ink); font: italic 400 0.9375rem/1.1 var(--c-serif); color: var(--c-ivory);
+}
+
+/* sol : libellés de phases, repère d'aujourd'hui */
+.c-ph { position: absolute; top: 20px; border-left: 1px solid rgb(244 242 238 / 0.3); }
+.c-ph__in {
+  position: sticky; left: 0.6rem; display: inline-grid; grid-template-columns: auto auto; column-gap: 0.6rem; align-items: end;
+  max-width: 100%; padding-left: 0.6rem; overflow: hidden;
+}
+.c-ph__k { grid-column: 1 / -1; font: 600 0.6875rem/1.3 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); }
+.c-ph__n { font: 300 3.4rem/0.9 var(--font-display); color: var(--c-ivory); transition: color 0.3s ease; }
+.c-ph__y { padding-bottom: 0.3rem; font: italic 400 1.05rem/1.2 var(--c-serif); color: var(--fg-2); white-space: nowrap; }
+.c-ph.is-active { border-left-color: var(--c-ivory); }
+.c-ph.is-active .c-ph__n { color: var(--c-red); }
+
+.c-ph.is-narrow .c-ph__in { padding-left: 0.35rem; }
+.c-ph.is-narrow .c-ph__k, .c-ph.is-narrow .c-ph__y { display: none; }
+.c-ph.is-narrow .c-ph__n { font-size: 1.75rem; }
+.c-floor.is-tall .c-ph { top: 26px; }
+.c-floor.is-tall .c-ph:not(.is-narrow) .c-ph__n { font-size: 4.6rem; }
+.c-today {
+  position: absolute; top: 0; bottom: 0; display: flex; align-items: flex-end; padding: 0 0 3.4rem 0.4rem;
+  border-left: 1px dashed rgb(244 242 238 / 0.55); font: italic 400 1rem/1 var(--c-serif); color: var(--fg-2); white-space: nowrap;
+}
+
+/* œuvres : perle (cible de 44 px) et cartel au-dessus de la bande */
+.c-h .node { z-index: 6; }
+.c-h .node[data-row="0"] { z-index: 8; }
+.c-h .node[data-row="1"] { z-index: 7; }
+.c-h .node.is-center { z-index: 9; }
+.c-h .node.is-exhibit { z-index: 12; }
+.c-h .node__btn {
+  display: block; position: relative; width: 44px; height: 44px; min-width: 44px; padding: 0;
+  background: transparent; border: 0; border-radius: 50%;
+}
+.c-h .node__btn:focus-visible { border-radius: 50%; box-shadow: 0 0 0 6px rgb(7 7 10 / 0.9); }
+.c-h .node__btn:focus-visible .c-plate { outline: 3px solid var(--focus); outline-offset: 2px; }
+.c-bead {
+  position: absolute; left: 50%; top: 50%; width: var(--c-bd); height: var(--c-bd); margin: calc(var(--c-bd) / -2) 0 0 calc(var(--c-bd) / -2);
+  border-radius: 50%; background: var(--c-ink); border: 1.5px solid var(--c-ivory); box-sizing: border-box;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+.frise[data-zoom="sagas"] .c-bead { border-width: 1px; }
+.node[data-kind="series"] .c-bead { background: radial-gradient(circle, var(--c-ivory) 0 18%, var(--c-ink) 22%); }
+.node[data-status="upcoming"] .c-bead, .node[data-status="tba"] .c-bead { background: transparent; border: 2px solid var(--c-ink); box-shadow: 0 0 0 1.5px var(--c-ivory); }
+.c-h[data-order="story"] .node[data-provisional="true"] .c-bead { border-style: dashed; }
+.c-h .node__btn:hover .c-bead { transform: scale(1.25); }
+.node.is-center .c-bead { transform: scale(1.3); box-shadow: 0 0 0 4px rgb(244 242 238 / 0.3), 0 0 22px 6px color-mix(in srgb, var(--band) 50%, #FFF 50%); }
+.node.is-highlighted .c-bead { box-shadow: 0 0 0 3px var(--c-ink), 0 0 0 4.5px var(--c-ivory); }
+
+/* reflet de la perle dans le sol-miroir */
+.c-h .node::after {
+  content: ""; position: absolute; left: 22px; top: calc(22px + var(--drop, 60px) + 8px); width: calc(var(--c-bd) * 1.2); height: calc(var(--c-bd) * 0.34);
+  transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; opacity: 0.8;
+  background: rgb(5 6 10 / 0.75); box-shadow: 0 0 0 1px rgb(244 242 238 / 0.14), 0 0 12px 3px color-mix(in srgb, var(--band) 30%, transparent);
+}
+
+/* cartel */
+.c-h .c-plate {
+  position: absolute; left: 50%; bottom: calc(50% + var(--lift, 24px)); width: 9rem; transform: translateX(-50%);
+  padding: 0.38rem 0.55rem 0.45rem; background: var(--c-panel); border-top: 1px solid rgb(244 242 238 / 0.42);
+  transition: border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+.c-h .c-plate::after { /* hampe jusqu'à la bande */
+  content: ""; position: absolute; left: 50%; top: 100%; width: 1px; height: var(--stem, 8px); background: rgb(244 242 238 / 0.38);
+}
+.c-h .c-plate .node__title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.c-h .node[data-status="upcoming"] .c-plate, .c-h .node[data-status="tba"] .c-plate { border-top-style: dashed; }
+.c-h .node__btn:hover .c-plate { border-top-color: #FFF; background: rgb(12 12 16 / 0.94); }
+.c-h .node.is-center .c-plate { border-top: 3px solid var(--c-red); background: rgb(4 4 6 / 0.95); }
+.c-h .node.is-highlighted .c-plate { border-top: 2px solid var(--c-ivory); }
+.c-h .node.is-dimmed .c-plate { border-top-color: transparent; background: rgb(7 7 10 / 0.8); }
+.c-h .node.is-dimmed .c-plate::after { opacity: 0.4; }
+.c-h .node.is-dimmed::after { opacity: 0.3; }
+.c-h .frise[data-zoom="detail"] .c-plate { width: 10rem; }
+.c-h .frise[data-zoom="detail"] .c-kicker { display: block; }
+.c-h[data-order="story"] .node[data-provisional="true"] .c-date { display: none; }
+.c-h[data-order="story"] .node[data-provisional="true"] .c-prov { display: block; }
+.c-h[data-order="story"] .node[data-provisional="true"] .c-prov::before { content: none; }
+.node[data-provisional="true"] .c-rank { display: none !important; } /* « place à confirmer » suffit */
+
+/* N0, N1 : les cartels s'effacent visuellement (le titre reste le nom accessible) */
+.c-h .frise[data-zoom="sagas"] .c-plate, .c-h .frise[data-zoom="phases"] .c-plate {
+  width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+.c-h .frise[data-zoom="sagas"] .node::after, .c-h .frise[data-zoom="phases"] .node::after { opacity: 0.6; }
+
+/* N3 : la pièce exposée (grand cartel sous l'aiguille) */
+.c-h .node.is-exhibit .c-plate {
+  width: 21rem; bottom: calc(50% + var(--lift0, 24px)); max-height: none; overflow: visible;
+  padding: 0.95rem 1.15rem 1.05rem; background: #050507; border-top: 4px solid var(--c-red);
+  box-shadow: 0 26px 50px rgb(0 0 0 / 0.5); animation: c-rise 0.25s ease both;
+}
+.c-h .node.is-exhibit .c-plate::after { height: 10px; background: var(--c-ivory); }
+.c-h .node.is-exhibit .c-plate > * + * { margin-top: 0.3rem; }
+.c-h .node.is-exhibit .node__title { font: 700 clamp(1.6rem, 2.3vw, 2rem)/1.02 var(--font-display); letter-spacing: 0.01em; -webkit-line-clamp: 2; line-clamp: 2; }
+.c-h .node.is-exhibit .c-kicker { display: none; }
+.c-h .node.is-exhibit .c-phase::before { content: attr(data-k) "\00a0·\00a0"; } /* le type d'œuvre ouvre la ligne de phase */
+.c-h .node.is-exhibit.c-fit-1 .c-vo { display: none; } /* pièce trop haute pour la place : on retire d'abord le titre original */
+.c-h .node.is-exhibit.c-fit-2 .c-univ, .c-h .node.is-exhibit.c-fit-2 .c-status { display: none; }
+.c-h .node.is-exhibit .c-date { font-size: 1.4rem; color: var(--fg); }
+.c-h .node.is-exhibit .c-date { display: block; }
+.c-h .node.is-exhibit :is(.c-vo, .c-phase, .c-univ, .c-status) { display: block; }
+.c-h[data-order="story"] .node.is-exhibit .c-rank { display: block; }
+.c-h .node.is-exhibit .c-phase { padding-top: 0.45rem; border-top: 1px solid var(--c-line); letter-spacing: 0.14em; text-transform: uppercase; font-size: 0.6875rem; }
+.c-h .node.is-veiled .c-plate { opacity: 0; }
+@keyframes c-rise { from { opacity: 0; transform: translate(-50%, 6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* aiguille fixe (rouge #1), légende, chevrons */
+.c-needle, .c-legend, .c-chevrons { display: none; }
+.c-h .c-needle {
+  display: block; position: absolute; z-index: 4; pointer-events: none;
+  left: calc(var(--c-fw, 100%) / 2 - 1px); width: 2px;
+  top: calc(var(--c-top) + var(--c-rt) + var(--c-rh) + 6px);
+  height: calc(var(--c-by) + 70px + 40px - var(--c-rt) - var(--c-rh) - 6px);
+  background: linear-gradient(180deg, var(--c-red) 0, var(--c-red) calc(100% - 40px), transparent);
+  box-shadow: 0 0 0 1px rgb(5 6 10 / 0.92); /* liseré d'encre : ≥ 6:1 sur toutes les teintes de bande */
+}
+.c-h .c-needle::before { content: ""; position: absolute; left: -3px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--c-red); }
+.c-h .c-legend {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.9rem; position: absolute; z-index: 6; pointer-events: none;
+  left: 4.25rem; top: calc(var(--c-top) + var(--c-h) - 0.95rem); transform: translateY(-100%); max-width: calc(var(--c-fw, 100%) / 2 - 6rem);
+  padding: 0.3rem 0.7rem; background: rgb(5 5 7 / 0.9); border-left: 1px solid rgb(244 242 238 / 0.4);
+}
+.c-legend__a { font: 600 0.6875rem/1.4 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg); }
+.c-legend__b { font: italic 400 1rem/1.2 var(--c-serif); color: var(--fg-2); }
+.c-legend__c { font: 500 0.8125rem/1.3 var(--font); color: var(--c-ivory); }
+.c-legend__c:empty { display: none; }
+.c-h .c-chevrons { display: block; }
+.c-chev {
+  position: absolute; z-index: 14; top: calc(var(--c-top) + var(--c-by) - 28px); display: grid; place-items: center;
+  width: 44px; height: 56px; padding: 0; border-radius: 22px; cursor: pointer;
+  color: var(--fg); background: rgb(5 5 7 / 0.86); border: 1px solid rgb(244 242 238 / 0.4);
+  font: 300 2rem/1 var(--font); transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.c-chev span { margin-top: -0.2rem; }
+.c-chev--prev { left: 0.75rem; }
+.c-chev--next { left: calc(var(--c-fw, 100%) - 0.75rem - 44px); }
+.c-chev:hover { background: rgb(20 20 25 / 0.95); border-color: var(--c-ivory); }
+.c-chev[aria-disabled="true"] { opacity: 0.38; cursor: default; }
+.c-chev[aria-disabled="true"]:hover { background: rgb(5 5 7 / 0.86); border-color: rgb(244 242 238 / 0.4); }
+
+/* transitions : réorganisation (ordre, mode) et changement de niveau */
+.c-h .frise.c-anim .node { transition: transform 0.9s cubic-bezier(0.22, 0.7, 0.2, 1); }
+.frise.is-rezoom .c-wall > *, .frise.is-rezoom .node { animation: c-fade 0.35s ease both; }
+@keyframes c-fade { from { opacity: 0; } }
+
+/* -- barre de zoom, aide, pied de page (texte toujours sur panneau) ---------------------- */
+.c-zoom { gap: 0.4rem; padding: 0.5rem; background: linear-gradient(0deg, rgb(5 5 7 / 0.97), rgb(5 5 7 / 0.88)); border-top: 1px solid var(--c-line); }
+.c-zoom .button { font-size: 1rem; }
+.c-zoom__label { font: 600 0.75rem/1.2 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); }
+.c-help { padding: 0.25rem 1.1rem 0.75rem; background: var(--c-panel); border-top: 1px solid var(--c-line); }
+.c-help summary { font: 600 0.8125rem/44px var(--font); letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
+.c-help li { color: var(--fg-2); }
+.c-footer { background: rgb(5 5 7 / 0.9); }
+
+/* =========================================================================================
+   VUE LISTE (bouton, ordinateur) et cartes (mobile) : contenu en flux
+   ========================================================================================= */
+:is(.c-vertical, .is-list-view) .node__btn {
+  position: relative; display: block; width: 100%; min-height: 44px; padding: 0.55rem 0.8rem 0.6rem;
+  background: var(--c-panel); border: 0; border-top: 1px solid rgb(244 242 238 / 0.3); border-radius: 0;
+}
+:is(.c-vertical, .is-list-view) .c-plate { position: static; display: block; width: auto; padding: 0; background: none; border: 0; transform: none; }
+:is(.c-vertical, .is-list-view) .c-plate > * + * { margin-top: 0.12rem; }
+:is(.c-vertical, .is-list-view) .c-plate .node__title { font-size: 0.98rem; line-height: 1.25; }
+.is-list-view:not(.c-vertical) .c-bead { display: none; }
+.is-list-view:not(.c-vertical) .c-kicker { display: block; }
+.is-list-view .node.is-dimmed .node__btn { border-top-color: transparent; background: rgb(7 7 10 / 0.8); }
+.is-list-view .node.is-highlighted .node__btn { border-top: 2px solid var(--c-ivory); }
+:is(.c-vertical, .is-list-view) .node[data-status="upcoming"] .node__btn,
+:is(.c-vertical, .is-list-view) .node[data-status="tba"] .node__btn { border-style: dashed none none; }
+
+/* =========================================================================================
+   MOBILE (≤ 767 px) : axe vertical (.c-vertical)
+   ========================================================================================= */
+@media (max-width: 767px) {
+  .c-header { position: relative; gap: 0.35rem 1rem; }
+  .c-brand a { font-size: 1.35rem; }
+  .c-modes a { padding: 0 0.5rem; letter-spacing: 0.12em; }
+  .c-tools .button { padding: 0.5rem 0.75rem; }
+  .c-zoom { gap: 0.3rem; padding: 0.4rem 0.5rem; flex-wrap: nowrap; }
+  .c-zoom__label { min-width: 0; margin: 0 0.15rem; font-size: 0.6875rem; letter-spacing: 0.1em; white-space: nowrap; }
+  .c-zoom #zoom-reset { padding: 0.5rem 0.8rem; font-size: 0.875rem; }
+}
+.c-vertical .frise { position: relative; height: auto; min-height: 0; padding: 0 0.75rem 2rem 0; overflow: visible; }
+.c-vertical .frise::before { /* bande lumineuse verticale, centrée sur x = 24 px */
+  content: ""; position: absolute; left: 0; width: 48px; top: 0; bottom: 0; pointer-events: none;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--band) 35%, transparent) 14%,
+    color-mix(in srgb, var(--band) 92%, transparent) 32%,
+    color-mix(in srgb, var(--band) 88%, #FFF 12%) 50%,
+    color-mix(in srgb, var(--band) 92%, transparent) 68%,
+    color-mix(in srgb, var(--band) 35%, transparent) 86%,
+    transparent 100%);
+}
+.c-vertical .c-wall, .c-vertical .c-floor, .c-vertical .frise__svg { display: none; }
+.c-vertical .c-intro-m {
+  position: relative; display: flex; flex-direction: column; gap: 0.3rem; margin: 1rem 0 1.25rem 52px; padding: 0.9rem 1rem 1rem;
+  background: var(--c-panel); border-top: 1px solid rgb(244 242 238 / 0.45);
+}
+.c-im-t { font: 700 2.6rem/0.95 var(--font-display); letter-spacing: 0.05em; text-transform: uppercase; color: var(--fg); }
+.c-im-k { margin-top: 0.35rem; font: 600 0.6875rem/1.3 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg); }
+.c-im-s { font: italic 400 1.15rem/1.2 var(--c-serif); color: var(--c-ivory); }
+.c-im-c { font: 500 0.875rem/1.35 var(--font); color: var(--c-ivory); }
+.c-im-h { font: 400 0.875rem/1.45 var(--font); color: var(--fg-2); }
+.c-vertical .oeuvres { display: block; position: relative; }
+.c-vertical .node { position: relative; display: flow-root; transform: none; padding: 0 0 0.625rem 52px; }
+.c-vertical .node::before { /* fil d'encre, segment par œuvre */
+  content: ""; position: absolute; left: 22.75px; top: 0; bottom: 0; width: 2.5px; background: var(--c-ink); pointer-events: none;
+}
+.c-vertical .node.c-first::before { top: var(--bead-y, 22px); }
+.c-vertical .node.c-last::before { bottom: auto; height: var(--bead-y, 22px); }
+.c-vertical .node.c-first.c-last::before { display: none; }
+.c-vertical .c-bead { left: -35px; top: 15px; margin: 0; width: 14px; height: 14px; }
+.c-vertical .node[data-lane="1"] .c-bead, .c-vertical .node[data-lane="-1"] .c-bead { left: -24px; }
+.c-vertical .node[data-lane="1"] .node__btn::before, .c-vertical .node[data-lane="-1"] .node__btn::before { /* bifurcation */
+  content: ""; position: absolute; left: -28px; top: 21px; width: 6px; border-top: 1.5px dashed var(--c-ink);
+}
+.c-vertical .frise[data-zoom="sagas"] .c-bead, .c-vertical .frise[data-zoom="phases"] .c-bead { width: 10px; height: 10px; left: -33px; top: 17px; }
+.c-vertical .node.is-center .node__btn { background: rgb(4 4 6 / 0.95); border-top: 3px solid var(--phase-color, var(--c-red)); }
+
+/* mode Personnages : la carte et la perle s'atténuent, le fil d'encre reste entier */
+.c-vertical .node.is-dimmed .node__btn { opacity: 1; border-top-color: transparent; background: rgb(7 7 10 / 0.8); }
+
+/* trame du personnage : fine ligne à droite de la bande */
+.c-vertical .node.c-tr::after { content: ""; position: absolute; left: 42px; top: 0; bottom: 0; width: 1.5px; background: var(--c-ivory); pointer-events: none; }
+.c-vertical .node.c-tr-a::after { top: var(--bead-y, 22px); }
+.c-vertical .node.c-tr-z::after { bottom: auto; height: var(--bead-y, 22px); }
+.c-vertical .node.c-tr-a.c-tr-z::after { display: none; }
+.c-vertical .node.is-highlighted .node__btn::after { content: ""; position: absolute; left: -21px; top: 21px; width: 11px; height: 1.5px; background: var(--c-ivory); }
+.c-vertical .node.is-highlighted .node__btn { border-top: 2px solid var(--c-ivory); }
+
+/* en-têtes : saga, phase, année */
+/* en-tête de saga : bien détaché (grand écart, filet épais et fond teintés de la couleur de la saga) */
+.c-vertical .node.c-ss .c-hd-saga {
+  display: block; position: relative; margin: 2.75rem 0 0.9rem; padding: 0.8rem 0.9rem 0.85rem;
+  background: color-mix(in srgb, var(--saga-color, var(--fg)) 13%, var(--c-panel)); border-top: 4px solid var(--saga-color, rgb(244 242 238 / 0.6));
+}
+.c-vertical .node.c-ss .c-hd-saga .c-hs-t { font-size: 1.3rem; }
+.c-vertical .node.c-first.c-ss .c-hd-saga { margin-top: 0; }
+.c-hs-t { display: block; font: 700 1.05rem/1.1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg); }
+.c-hs-y { display: block; margin-top: 0.15rem; font: italic 400 1rem/1.2 var(--c-serif); color: var(--fg-2); }
+.c-vertical .frise[data-zoom="sagas"] .c-hs-t { font-size: 1.9rem; letter-spacing: 0.04em; }
+.c-vertical .frise[data-zoom="sagas"] .c-hs-y { font-size: 1.2rem; color: var(--c-ivory); }
+
+.c-vertical .frise:not([data-zoom="sagas"]) .node.c-ps .c-hd-phase { display: grid; }
+.c-hd-phase {
+  position: relative; grid-template-columns: auto 1fr; column-gap: 0.7rem; align-items: end;
+  margin: 0.6rem 0 0.6rem; padding: 0.5rem 0.8rem 0.55rem; background: var(--c-panel); border-left: 1px solid rgb(244 242 238 / 0.4);
+}
+.c-hd-phase::before { content: ""; position: absolute; left: -42px; top: 50%; width: 28px; height: 2.5px; background: var(--c-ink); }
+.c-hp-k { grid-column: 1 / -1; font: 600 0.6875rem/1.3 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); }
+.c-hp-n { font: 300 3rem/0.88 var(--font-display); color: var(--c-ivory); }
+.c-hp-y { padding-bottom: 0.25rem; font: italic 400 1.05rem/1.2 var(--c-serif); color: var(--fg-2); }
+.c-vertical .frise[data-zoom="phases"] .c-hp-n { font-size: 4.5rem; }
+.c-hd-phase.is-active { border-left-color: var(--c-ivory); }
+.c-hd-phase.is-active .c-hp-n { color: var(--c-red); }
+
+.c-vertical :is(.frise[data-zoom="oeuvres"], .frise[data-zoom="detail"]) .node.c-ys .c-hd-year { display: block; }
+.c-hd-year {
+  position: relative; width: max-content; margin: 0.35rem 0 0.35rem; padding: 0.1rem 0.5rem 0.15rem;
+  background: var(--c-panel); font: 700 1.6rem/1 var(--font-display); color: var(--fg-2);
+}
+.c-hd-year::before { content: ""; position: absolute; left: -40px; top: 50%; width: 22px; height: 1.5px; background: var(--c-ink); }
+
+/* niveaux de zoom des cartes (mobile) */
+.c-vertical .frise[data-zoom="sagas"] .node { padding-bottom: 0.3rem; }
+.c-vertical .frise[data-zoom="sagas"] .node__btn, .c-vertical .frise[data-zoom="phases"] .node__btn { padding: 0.45rem 0.75rem; }
+.c-vertical .frise[data-zoom="sagas"] .c-date, .c-vertical .frise[data-zoom="phases"] .c-date { display: none; }
+.c-vertical .frise[data-zoom="sagas"] .c-plate .node__title { font-size: 0.9rem; }
+.c-vertical :is(.frise[data-zoom="oeuvres"], .frise[data-zoom="detail"]) .c-kicker { display: block; letter-spacing: 0.1em; }
+.c-vertical .frise[data-zoom="detail"] :is(.c-vo, .c-phase, .c-univ, .c-status) { display: block; }
+.c-vertical[data-order="story"] .frise[data-zoom="detail"] .c-rank { display: block; }
+.c-vertical[data-order="story"] :is(.frise[data-zoom="oeuvres"], .frise[data-zoom="detail"]) .node[data-provisional="true"] .c-prov { display: block; }
+.c-vertical .frise[data-zoom="detail"] .c-plate .node__title { font: 700 1.35rem/1.08 var(--font-display); letter-spacing: 0.01em; }
+.c-vertical .frise[data-zoom="detail"] .c-date { font-size: 1.1rem; color: var(--fg); }
+.c-vertical .frise[data-zoom="detail"] .node__btn { padding: 0.75rem 0.9rem 0.85rem; }
+
+/* aiguille horizontale au milieu de l'écran (rouge #1 sur mobile) */
+.c-needle-m { display: none; }
+.c-vertical.c-needle-on .c-needle-m {
+  display: block; position: fixed; z-index: 15; left: 0; top: 50%; width: 50px; height: 2px; margin-top: -1px; pointer-events: none;
+  background: var(--c-red); box-shadow: 0 0 0 1px rgb(5 6 10 / 0.92);
+}
+.c-vertical.c-needle-on .c-needle-m::after { content: ""; position: absolute; right: -2px; top: -4px; border: 5px solid transparent; border-left: 6px solid var(--c-red); border-right: 0; }
+
+/* le bouton « Vue liste » n'a pas d'effet quand la coquille impose la liste (≤ 400 px, ≤ 420 px de haut) */
+@media (max-width: 400px), (max-height: 420px) { #btn-list { display: none; } }
+
+/* -- vue Archives (habillage seulement) -------------------------------------------------- */
+.archives {
+  --arch-font-display: 'Antonio', 'Archivo', 'Arial Narrow', sans-serif;
+  --arch-font-text: 'Inter', system-ui, sans-serif;
+  --arch-accent: #FF5A5F;
+  --arch-selected-bg: #E3262E;
+  --arch-selected-fg: #FFFFFF;
+  --arch-panel: rgb(7 7 10 / 0.88);
+}
+
+/* -- mouvement réduit : pas de zoom animé ni de glissement (fondus ≤ 200 ms) ------------- */
+.is-reduced-motion.c-h .frise.c-anim .node { transition: none; }
+.is-reduced-motion .frise.is-rezoom .c-wall > *, .is-reduced-motion .frise.is-rezoom .node { animation-duration: 0.15s; }
+.is-reduced-motion.c-h .node.is-exhibit .c-plate { animation: c-fade 0.15s ease both; }
+.is-reduced-motion .c-yr, .is-reduced-motion .c-ph__n { transition-duration: 0.15s; }
+.is-reduced-motion .c-bead { transition: box-shadow 0.15s ease; } /* pas de grossissement animé */
+.is-reduced-motion.c-h .node__btn:hover .c-bead { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .c-h .frise.c-anim .node { transition: none; }
+  .frise.is-rezoom .c-wall > *, .frise.is-rezoom .node { animation-duration: 0.15s; }
+  .c-h .node.is-exhibit .c-plate { animation: c-fade 0.15s ease both; }
+  .c-yr, .c-ph__n, .c-pn { transition-duration: 0.15s; }
+  .c-bead { transition: box-shadow 0.15s ease; }
+  .c-h .node__btn:hover .c-bead { transform: none; }
+}
+
+/* -- contrastes forcés --------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .c-wall::after { background: none; box-shadow: none; border-top: 1px solid CanvasText; border-bottom: 1px solid CanvasText; }
+  .c-floor { border-top: 1px solid CanvasText; }
+  .c-floor::before, .c-h .node::after, .c-vertical .frise::before { display: none; }
+  .c-bead { forced-color-adjust: none; background: CanvasText; border-color: Canvas; }
+  .c-vertical .node::before, .c-vertical .node.c-tr::after, .c-hd-phase::before, .c-hd-year::before { forced-color-adjust: none; background: CanvasText; }
+  .c-needle, .c-needle-m, .c-h .c-needle::before { forced-color-adjust: none; background: Highlight; }
+  .c-trame .c-arc, .c-trame .c-arc-ring, .c-ticks line, .c-ticks .c-tick, .c-ticks .c-grid,
+  .thread--ink .thread__core, .thread--ink .thread__branch .thread__core { stroke: CanvasText; }
+  .thread--ink .thread__glow { display: none; }
+  .oeuvres .node.is-dimmed .c-bead { background: Canvas; border-color: CanvasText; }
+  .c-plate, .c-pn, .c-yr, .c-intro, .c-chev { border: 1px solid CanvasText; }
+  .c-pn--phase.is-active .c-pn__n, .c-ph.is-active .c-ph__n, .c-hd-phase.is-active .c-hp-n { color: Highlight; }
+}
+
+/* -- code couleur (variables : data/couleurs.css) --------------------------------------------------
+   Perles cerclées de la couleur de leur phase, chiffres de phase et filets des cartels dans cette
+   couleur, sagas dans la leur ; le rouge garde l'aiguille. L'œuvre centrale et la phase active prennent
+   la couleur de leur phase (filet plus épais), accordée au badge « Phase » du téléphone. */
+.node[data-phase] .c-bead { border-color: var(--phase-color); }
+.node[data-kind="series"][data-phase] .c-bead { background: radial-gradient(circle, var(--phase-color) 0 18%, var(--c-ink) 22%); }
+.node[data-status="upcoming"][data-phase] .c-bead, .node[data-status="tba"][data-phase] .c-bead { box-shadow: 0 0 0 1.5px var(--phase-color); }
+
+/* autre univers (Terre-828…) : couleur à part (--uni sur fond sombre, --uni-ink sur la bande claire),
+   branche du fil en tirets de la même couleur ; l'univers écrit en toutes lettres : sur téléphone, dans
+   le cartel ; sur la frise horizontale, au bout de la branche (.c-uni), et dans la pièce exposée (N3) —
+   pas dans les petits cartels, qu'il allongerait au point de chevaucher la rangée du dessus. Perle en
+   losange, carte décalée vers la droite avec un bord plein (choix du 2026-10-20, version « losange » ;
+   :root:root garde le poids de l'ancien sélecteur de version, donc la priorité sur les autres états). */
+.node__uni { display: none; } /* l'étiquette du cartel (.c-univ) en tient lieu */
+.c-vertical .node[data-alt] .c-plate .c-univ { display: inline-block; }
+.c-h .node.is-exhibit:not(.c-fit-2)[data-alt] .c-plate .c-univ { display: block; width: fit-content; }
+.node[data-alt] .c-plate .c-univ {
+  justify-self: start; align-self: start; margin-top: 0.3rem; padding: 0.08rem 0.45rem 0.06rem;
+  border: 1px solid var(--uni); border-radius: 8px; color: var(--uni); max-width: 100%; text-wrap: balance;
+  font-weight: 700; font-size: 0.6875rem; letter-spacing: 0.01em; text-transform: none;
+}
+.thread--ink .thread__branch .thread__core { stroke: var(--uni-ink); }
+.c-uni { border: 1.5px dashed var(--uni); border-radius: 4px; color: var(--uni); font-weight: 600; }
+.c-vertical .node[data-alt] .node__btn::before { border-top: 2px dashed var(--uni-ink); }
+:root:root .node[data-alt] .c-bead { border-radius: 2px; transform: rotate(45deg); background: var(--uni-ink); border-color: var(--c-ivory); }
+:root:root.c-h .node[data-alt] .node__btn:hover .c-bead { transform: rotate(45deg) scale(1.25); }
+:root:root.c-vertical .node[data-alt] .node__btn { margin-left: 18px; width: calc(100% - 18px); box-shadow: inset 4px 0 0 var(--uni); }
+:root:root.c-vertical .node[data-alt] .node__btn::before { width: 24px; }
+:root:root.c-vertical .node[data-alt] .c-bead { left: -42px; }
+/* frise horizontale : le petit cartel reprend le bord plein de la carte du téléphone */
+:root:root.c-h .node[data-alt]:not(.is-dimmed):not(.is-exhibit) .c-plate { box-shadow: inset 4px 0 0 var(--uni); padding-left: 0.8rem; }
+@media (forced-colors: active) {
+  .node[data-alt] .c-plate .c-univ, .c-uni { border-color: CanvasText; color: CanvasText; }
+}
+.c-h .node[data-phase] .c-plate { border-top: 2px solid color-mix(in srgb, var(--phase-color) 85%, transparent); }
+.c-h .node[data-phase].is-center .c-plate { border-top: 3px solid var(--phase-color); }
+.c-h .node[data-phase].is-dimmed .c-plate { border-top-color: transparent; }
+.c-pn--phase[data-phase] .c-pn__n, .c-pn--phase.is-active[data-phase] .c-pn__n { color: var(--phase-color); }
+.c-pn--phase.is-active { border-top: 3px solid var(--phase-color, var(--c-red)); }
+.c-ph[data-phase] .c-ph__n, .c-ph.is-active[data-phase] .c-ph__n { color: var(--phase-color); }
+.c-ph[data-phase] { border-left-color: color-mix(in srgb, var(--phase-color) 70%, transparent); }
+.c-ph.is-active { border-left-color: var(--phase-color, var(--c-red)); box-shadow: inset 2px 0 0 var(--phase-color, var(--c-red)); }
+.node[data-phase] .c-hd-phase .c-hp-n, .node[data-phase] .c-hd-phase.is-active .c-hp-n { color: var(--phase-color); }
+.node[data-phase] .c-hd-phase { border-left-color: var(--phase-color); }
+.node[data-phase] .c-hd-phase.is-active { border-left-color: var(--phase-color); box-shadow: inset 2px 0 0 var(--phase-color); }
+.c-pn--saga[data-saga] { border-top: 3px solid var(--saga-color); }
+.c-pn--saga[data-saga] .c-pn__t { color: var(--saga-color); }
+.node[data-saga] .c-hd-saga .c-hs-t { color: var(--saga-color); }
+.node.c-node-phase { --c-bd: 20px; }
+.c-node-phase .c-plate .node__title { font-size: 1rem; }
+
+/* mode Personnages (grand écran) : la recherche et la fiche du personnage forment un cartel posé dans
+   la frise, à gauche ; la frise garde toute la largeur et défile dessous (le cartel est sa légende) */
+@media (min-width: 1100px) {
+  :root[data-mode="personnages"]:not(.is-list-view) #contenu > #champ-personnage {
+    position: absolute; z-index: 12; left: clamp(0.75rem, 2vw, 1.5rem); top: calc(var(--c-top, 0px) + 12px);
+    width: min(23rem, 32vw); max-height: calc(var(--c-h, 640px) - 24px); overflow-y: auto; overscroll-behavior: contain;
+    display: grid; grid-template-columns: 1fr; gap: 0.6rem; padding: 0.9rem 1rem 1rem;
+    background: rgb(5 5 7 / 0.92); border-top: 3px solid var(--c-red); box-shadow: 0 18px 40px rgb(0 0 0 / 0.45);
+  }
+  :root[data-mode="personnages"] #champ-personnage > * { grid-column: 1; grid-row: auto; }
+  :root[data-mode="personnages"] #champ-personnage .c-perso-card { padding: 0.75rem 0 0; background: transparent; border: 0; border-top: 1px solid var(--c-line); border-radius: 0; box-shadow: none; }
+  :root[data-mode="personnages"]:not(.is-list-view) .c-intro { display: none; } /* le cartel du personnage tient lieu d'introduction */
+  :root[data-mode="personnages"]:not(.is-list-view) .c-chev--prev { left: calc(min(23rem, 32vw) + 2.25rem); }
+  :root[data-mode="personnages"]:not(.is-list-view) .c-legend { left: calc(min(23rem, 32vw) + 2.25rem); }
+}
+/* coupure d'une période sans œuvre affichée */
+.c-yr--gap { display: grid; place-items: center; color: #80808C; letter-spacing: 0.1em; font-weight: 300; }
+
+/* en-tête sur une ligne (grand écran) : la mention passe sous le nom, onglets plus serrés */
+@media (min-width: 1100px) {
+  .c-header { column-gap: 1rem; }
+  .c-brand { flex-direction: column; align-items: flex-start; gap: 0.1rem; }
+  .c-brand a { font-size: 1.3rem; min-height: 36px; }
+  .c-brand__tag { font-size: 0.85rem; }
+  .c-modes a { letter-spacing: 0.12em; padding: 0 0.5rem; }
+}
+@media (min-width: 1100px) and (max-width: 1279px) {
+  .c-header { column-gap: 0.6rem; }
+  .c-modes a { padding: 0 0.35rem; }
+  .c-brand a { font-size: 1.2rem; }
+  .c-modes a { letter-spacing: 0.08em; }
+}
+
+/* -- téléphone, interface « appli » (shared/css/app.css) : le nom du site est déjà dans la barre du haut,
+   l'introduction de la frise se resserre en une ligne d'ordre et de comptes */
+@media (max-width: 767px) {
+  :root[data-app] .c-vertical .c-intro-m { margin: 0.5rem 0 0.9rem 52px; padding: 0.6rem 0.9rem 0.7rem; gap: 0.2rem; }
+  :root[data-app] .c-im-t, :root[data-app] .c-im-c { display: none; } /* nom du site et trame : déjà dans les barres */
+  :root[data-app] .c-im-k { margin-top: 0; }
+  :root[data-app] .c-im-s { font-size: 1.05rem; }
+}
+
+/* frise verticale (téléphone) : en tête de chaque phase, un badge « PHASE I » dans la couleur de la phase,
+   suivi de ses années, au lieu du grand chiffre (une ligne au lieu de trois) */
+.c-vertical .frise:not([data-zoom="sagas"]) .node.c-ps .c-hd-phase { display: flex; }
+.c-vertical .c-hd-phase { flex-wrap: wrap; align-items: center; gap: 0 0.6rem; padding: 0.45rem 0.75rem; }
+:root.c-vertical .frise .node .c-hd-phase :is(.c-hp-k, .c-hp-n) { /* passe avant la couleur du chiffre (phase active comprise) */
+  display: inline-block; padding-block: 0.3rem; font: 700 0.75rem/1.2 var(--font); letter-spacing: 0.12em; text-transform: uppercase;
+  color: #050507; background: var(--phase-color, var(--c-ivory));
+}
+.c-vertical .frise .c-hd-phase .c-hp-k { grid-column: auto; padding-left: 0.7rem; border-radius: 999px 0 0 999px; }
+.c-vertical .frise .c-hd-phase .c-hp-n { margin-left: calc(-0.6rem - 1px); padding-left: calc(0.6em + 1px); padding-right: 0.7rem; border-radius: 0 999px 999px 0; }
+.c-vertical .frise .c-hd-phase .c-hp-y { padding-bottom: 0; font-size: 1rem; }
+.c-vertical .frise .c-hd-phase.is-active { background: rgb(4 4 6 / 0.95); }
+@media (forced-colors: active) { :root.c-vertical .frise .node .c-hd-phase :is(.c-hp-k, .c-hp-n) { forced-color-adjust: none; background: CanvasText; color: Canvas; } }
+
+/* -- téléphone (frise verticale) : l'affiche d'abord (shared/js/affiche.js) ---------------------------
+   vignette à gauche du cartel. Masquée aux niveaux Sagas et Phases (cartes résumées), sur la frise
+   horizontale et en liste. */
+.c-thumb { display: none; }
+.c-vertical :is(.frise[data-zoom="oeuvres"], .frise[data-zoom="detail"]) .c-thumb { display: block; }
+.c-vertical :is(.frise[data-zoom="oeuvres"], .frise[data-zoom="detail"]) .c-thumb.c-affiche--ph { display: flex; }
+.c-vertical :is(.frise[data-zoom="oeuvres"], .frise[data-zoom="detail"]) .node:not(.c-node-phase) .node__btn {
+  display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); column-gap: 0.85rem; align-items: center;
+}
+.c-vertical .frise[data-zoom="detail"] .node:not(.c-node-phase) .node__btn { grid-template-columns: 7.25rem minmax(0, 1fr); align-items: start; }
+.c-vertical .node.is-dimmed .c-thumb { opacity: 0.4; filter: grayscale(0.7); }
+
+/* -- vue d'ensemble (N0, ordinateur et tablette) : toute la frise dans la largeur, sans défilement ;
+   ni aiguille ni chevrons. Aux niveaux Sagas et Phases, un clic sur la frise zoome (curseur loupe). */
+:root.c-fit.c-h .c-needle, :root.c-fit.c-h .c-chevrons { display: none; }
+:root.c-h .frise:is([data-zoom="sagas"], [data-zoom="phases"]) { cursor: zoom-in; }
+:root.c-h .frise:is([data-zoom="sagas"], [data-zoom="phases"]) .node__btn { cursor: zoom-in; }
+:root.c-h .frise:is([data-zoom="sagas"], [data-zoom="phases"]) .node[data-kind="phase"] .node__btn { cursor: pointer; }
+
+/* -- ordinateur (frise horizontale) : affiches dans le sol-miroir (shared/js/affiche.js) ---------------
+   une petite affiche sous chaque œuvre aux niveaux Œuvres et Détail, agrandie au survol ou au focus (et
+   aux autres niveaux, au survol seulement) ; au niveau Détail, celle de la pièce exposée reste agrandie.
+   Échap rend sa petite taille à l'affiche agrandie (WCAG 1.4.13). */
+:root.c-h .c-thumb {
+  --pop-h: clamp(96px, calc(var(--c-fh, 200px) - 22px), 270px);
+  position: absolute; left: 50%; top: calc(50% + var(--drop, 60px) + 10px); z-index: 2;
+  width: calc(var(--pop-h) * 2 / 3); transform: translateX(-50%);
+  box-shadow: 0 0 0 1px rgb(244 242 238 / 0.24), 0 18px 40px rgb(0 0 0 / 0.65);
+}
+:root.c-h .node:is(:hover, :focus-within) { z-index: 15; }
+:root.c-h .node__btn:is(:hover, :focus-visible) .c-thumb,
+:root.c-h .frise[data-zoom="detail"] .node.is-exhibit .c-thumb { display: block; }
+:root.c-h .node__btn:is(:hover, :focus-visible) .c-thumb.c-affiche--ph,
+:root.c-h .frise[data-zoom="detail"] .node.is-exhibit .c-thumb.c-affiche--ph { display: flex; }
+/* passage invisible de la perle à l'affiche : le survol se maintient en descendant vers elle */
+:root.c-h .node__btn:hover::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: calc(var(--drop, 60px) - 10px); }
+:root.c-h .frise.no-pop .node:not(.is-exhibit) .c-thumb { display: none; }
+/* la rangée de petites affiches dans le sol, sous chaque œuvre (largeur selon l'écart avec les voisines),
+   entre les libellés de phase resserrés sur une ligne et la légende */
+:root.c-h .frise:is([data-zoom="oeuvres"], [data-zoom="detail"]) .c-ph { top: 10px; }
+:root.c-h .frise:is([data-zoom="oeuvres"], [data-zoom="detail"]) .c-ph__in { grid-template-columns: auto auto auto; align-items: baseline; }
+:root.c-h .frise:is([data-zoom="oeuvres"], [data-zoom="detail"]) .c-ph__k { grid-column: auto; }
+:root.c-h .frise:is([data-zoom="oeuvres"], [data-zoom="detail"]) .c-ph:not(.is-narrow) .c-ph__n { font-size: 1.9rem; }
+:root.c-h .frise:is([data-zoom="oeuvres"], [data-zoom="detail"]) .c-ph__y { padding-bottom: 0; font-size: 0.95rem; }
+:root.c-h :is(.frise[data-zoom="oeuvres"], .frise[data-zoom="detail"]) .node:not(.c-node-phase) .c-thumb {
+  --sh: max(60px, min(calc(var(--pw, 80px) * 1.5), calc(var(--c-fh, 200px) - 112px)));
+  display: block; width: calc(var(--sh) * 2 / 3); top: calc(50% + var(--drop, 60px) + 54px);
+  box-shadow: 0 0 0 1px rgb(244 242 238 / 0.18), 0 8px 18px rgb(0 0 0 / 0.5);
+}
+:root.c-h :is(.frise[data-zoom="oeuvres"], .frise[data-zoom="detail"]) .node:not(.c-node-phase) .c-thumb.c-affiche--ph { display: flex; }
+:root.c-h :is(.frise[data-zoom="oeuvres"], .frise[data-zoom="detail"]) .node.is-center .c-thumb { box-shadow: 0 0 0 2px var(--phase-color, var(--c-red)), 0 8px 18px rgb(0 0 0 / 0.5); }
+:root.c-h .node.is-dimmed .c-thumb { opacity: 0.4; filter: grayscale(0.7); }
+:root.c-h :is(.frise[data-zoom="oeuvres"], .frise[data-zoom="detail"]) .node__btn:is(:hover, :focus-visible) .c-thumb,
+:root.c-h .frise[data-zoom="detail"] .node.is-exhibit .c-thumb {
+  width: calc(var(--pop-h) * 2 / 3); top: calc(50% + var(--drop, 60px) + 10px); opacity: 1; filter: none;
+  box-shadow: 0 0 0 1px rgb(244 242 238 / 0.24), 0 18px 40px rgb(0 0 0 / 0.65);
+}
+/* Échap : l'affiche agrandie reprend sa petite taille */
+:root.c-h :is(.frise[data-zoom="oeuvres"], .frise[data-zoom="detail"]).no-pop .node:not(.is-exhibit) .node__btn .c-thumb {
+  width: calc(var(--sh) * 2 / 3); top: calc(50% + var(--drop, 60px) + 54px);
+}
+
+/* -- téléphone (frise verticale) : la dernière œuvre peut monter jusqu'à l'aiguille, au milieu de l'écran */
+.c-vertical .frise { padding-bottom: calc(50vh - 4rem); }
+
+/* téléphone (interface appli) : l'introduction de la frise ne répète pas la ligne de contexte (ordre),
+   ni les cartes de phase ou la fiche du personnage (nombre d'œuvres, années) : la consigne seulement */
+@media (max-width: 767px) {
+  :root[data-app] .c-im-k { display: none; }
+  :root[data-app]:is([data-mode="phases"], [data-mode="personnages"]) .c-im-s { display: none; }
+}
+
+/* mode Phases : la saga est en tête de ses phases (en-tête de saga sur téléphone, travée sur ordinateur) ;
+   chaque phase ne la répète pas */
+/* phase repliée : pas de surtitre « La Saga de… » (l'en-tête de la saga est juste au-dessus, redondant) */
+:root .node.c-node-phase .c-plate .c-kicker { display: none; }
+
+/* -- squelette de chargement (concept.css) : années, cartels, bande d'horizon et affiches du sol ;
+   sur téléphone (frise verticale), une liste de cartes avec leur vignette */
+:root.is-loading .c-skel--frise { display: grid; align-content: center; gap: 1.1rem; min-height: 60vh; padding: 1.5rem 0; overflow: hidden; }
+.c-skel__row { display: flex; justify-content: space-around; gap: 1rem; padding: 0 3%; }
+.c-skel__years .c-skel__b { width: clamp(4rem, 9vw, 7rem); height: 2.6rem; }
+.c-skel__plates .c-skel__b { width: clamp(6rem, 12vw, 10rem); height: 3.2rem; }
+.c-skel--frise .c-skel__band { height: 3rem; border-radius: 0; }
+.c-skel__posters .c-skel__b { width: clamp(3rem, 6vw, 4.6rem); aspect-ratio: 2 / 3; }
+.c-skel__cards { display: none; }
+@media (max-width: 767px) {
+  :root.is-loading .c-skel--frise { align-content: start; min-height: 0; padding: 0.75rem 16px 2rem 0; }
+  .c-skel--frise :is(.c-skel__row, .c-skel__band) { display: none !important; }
+  .c-skel--frise .c-skel__cards { display: grid; gap: 0.85rem; margin: 0; padding: 0 0 0 52px; list-style: none; position: relative; }
+  .c-skel--frise .c-skel__cards::before { content: ""; position: absolute; left: 22px; top: 0; bottom: 0; width: 3px; border-radius: 2px; background: rgb(244 242 238 / 0.12); }
+  .c-skel--frise .c-skel__cards li { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); grid-template-rows: auto auto 1fr; column-gap: 0.85rem; row-gap: 0.5rem; padding: 0.6rem; border-radius: 10px; background: rgb(244 242 238 / 0.03); }
+  .c-skel--frise .c-skel__cards li > :first-child { grid-row: 1 / span 3; aspect-ratio: 2 / 3; }
+  .c-skel--frise .c-skel__cards li > :nth-child(2) { height: 1.3rem; width: 85%; }
+  .c-skel--frise .c-skel__cards li > :nth-child(3) { height: 0.95rem; width: 45%; }
+}
