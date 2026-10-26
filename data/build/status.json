@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "checked_at": "2026-10-20",
+  "checked_at": "2026-10-26",
   "sources": {
     "wikidata": {
       "ok": true,
-      "at": "2026-10-20"
+      "at": "2026-10-26"
     },
     "frwiki": {
       "ok": true,
-      "at": "2026-10-20",
+      "at": "2026-10-26",
       "discovery_pages": [
         {
           "phase": 1,
