@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "checked_at": "2026-10-26",
+  "checked_at": "2026-11-02",
   "sources": {
     "wikidata": {
       "ok": true,
-      "at": "2026-10-26"
+      "at": "2026-11-02"
     },
     "frwiki": {
       "ok": true,
-      "at": "2026-10-26",
+      "at": "2026-11-02",
       "discovery_pages": [
         {
           "phase": 1,
@@ -28,12 +28,12 @@
         {
           "phase": 4,
           "title": "Phase 4 de l'univers cinématographique Marvel",
-          "revid": 240113935
+          "revid": 240902088
         },
         {
           "phase": 5,
           "title": "Phase 5 de l'univers cinématographique Marvel",
-          "revid": 238166021
+          "revid": 240836554
         },
         {
           "phase": 6,
@@ -171,5 +171,5 @@
     "Q113244839",
     "Q113244842"
   ],
-  "http_requests": 181
+  "http_requests": 183
 }
