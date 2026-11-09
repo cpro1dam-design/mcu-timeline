@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "checked_at": "2026-11-02",
+  "checked_at": "2026-11-09",
   "sources": {
     "wikidata": {
       "ok": true,
-      "at": "2026-11-02"
+      "at": "2026-11-09"
     },
     "frwiki": {
       "ok": true,
-      "at": "2026-11-02",
+      "at": "2026-11-09",
       "discovery_pages": [
         {
           "phase": 1,
@@ -18,7 +18,7 @@
         {
           "phase": 2,
           "title": "Phase 2 de l'univers cinématographique Marvel",
-          "revid": 235649747
+          "revid": 241170033
         },
         {
           "phase": 3,
