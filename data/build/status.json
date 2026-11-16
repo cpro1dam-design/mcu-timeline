@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "checked_at": "2026-11-09",
+  "checked_at": "2026-11-16",
   "sources": {
     "wikidata": {
       "ok": true,
-      "at": "2026-11-09"
+      "at": "2026-11-16"
     },
     "frwiki": {
       "ok": true,
-      "at": "2026-11-09",
+      "at": "2026-11-16",
       "discovery_pages": [
         {
           "phase": 1,
@@ -18,7 +18,7 @@
         {
           "phase": 2,
           "title": "Phase 2 de l'univers cinématographique Marvel",
-          "revid": 241170033
+          "revid": 241186032
         },
         {
           "phase": 3,
@@ -38,7 +38,7 @@
         {
           "phase": 6,
           "title": "Phase 6 de l'univers cinématographique Marvel",
-          "revid": 238715532
+          "revid": 241302457
         }
       ]
     },
@@ -68,6 +68,16 @@
       "id": "Q109951319",
       "kind": "film",
       "label": "untitled Shang-Chi and the Legend of the Ten Rings sequel",
+      "signals": [
+        "wikidata"
+      ],
+      "frwiki_rows": [],
+      "reason": "une seule source (wikidata)"
+    },
+    {
+      "id": "Q141755993",
+      "kind": "film",
+      "label": "Avengers Endgame: Encore",
       "signals": [
         "wikidata"
       ],
